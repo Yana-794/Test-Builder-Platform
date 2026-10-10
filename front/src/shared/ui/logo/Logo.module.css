@@ -1,0 +1,45 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--color-text);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: color 0.15s ease;
+}
+
+.logo:hover {
+  color: var(--color-primary);
+}
+
+.image {
+  display: block;
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.text {
+  line-height: 1;
+}
+
+.sm .text {
+  font-size: 16px;
+}
+
+.md .text {
+  font-size: 18px;
+}
+.light {
+    color: #fff;
+}
+.light:hover {
+    opacity: 0.85;
+    color: #fff;
+}
+.light .text {
+    color: #fff;
+}
