@@ -1,7 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { Button } from "../../../../shared/index";
-import { Input } from "../../../../shared/index";
+import { Button } from "../../../../../shared/index";
+import { Input } from "../../../../../shared/index";
 import styles from "./RegisterForm.module.css";
+import { useNavigate } from "react-router";
+import { useRegister, useLogin } from "../../../api/queries";
+import { HttpError } from "../../../api/client";
 
 type FormState = {
   name: string;
@@ -14,6 +17,11 @@ type FormState = {
 type Errors = Partial<Record<keyof FormState, string>>;
 
 export function RegisterForm() {
+const navigate = useNavigate();
+  const register = useRegister();
+  const login = useLogin();
+  const [serverError, setServerError] = useState<string | null>(null);
+
   const [form, setForm] = useState<FormState>({
     name: "",
     email: "",
@@ -79,9 +87,23 @@ export function RegisterForm() {
     setSubmitting(true);
 
     try {
-      // TODO: заменить на реальный вызов API
-      console.log("Register payload:", form);
-      await new Promise((r) => setTimeout(r, 800));
+      await register.mutateAsync({
+        display_name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
+      // После успешной регистрации, автоматически войти
+      await login.mutateAsync({
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      if (err instanceof HttpError) {
+        setServerError(err.message);
+      } else {
+        setServerError("Не удалось создать аккаунт. Попробуйте позже.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -89,6 +111,8 @@ export function RegisterForm() {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
+      {serverError && <div role="alert">{serverError}</div>}
+
       <Input
         label="Имя"
         type="text"

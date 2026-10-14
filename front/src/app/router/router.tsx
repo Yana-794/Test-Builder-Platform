@@ -14,11 +14,8 @@ export const router = createBrowserRouter([
   { path: '/verify-email', element: <VerifyEmailPage /> },
   {
     path: '/app',
-    element: (
-      <ProtectedRoute>
-        <DashboardPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute />,
+    children: [{ index: true, element: <DashboardPage /> }],
   },
   { path: '*', element: <NotFoundPage /> },
 ])

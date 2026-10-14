@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { AuthLoyaut } from "../../../widgets/auth-layout/AuthLoyaut";
-import { RegisterForm } from "../../../features/auth/register-form/ui/RegisterForm";
+import { RegisterForm } from "../../../features/auth/ui/register-form/ui/RegisterForm";
 
 export const RegisterPage = () => {
   return (

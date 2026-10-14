@@ -1,5 +1,4 @@
 import { Button } from '../../../shared//index'
-// import lending from '../../../asset/lending.png'
 import styles from './Hero.module.css'
 import video from '../../../asset/video.webm'
 export function Hero() {

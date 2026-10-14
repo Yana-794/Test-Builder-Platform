@@ -41,7 +41,7 @@ export function Features() {
     <section id="features" className={styles.section}>
       <div className={styles.inner}>
         <div className={styles.head}>
-          <h2 className={styles.title}>Всё необходимое для проверки знаний</h2>
+          <h2 className={styles.title}>Всё необходимое для <span className={styles.primaryText}>проверки</span> знаний</h2>
           <p className={styles.subtitle}>
             Простой инструмент, который закрывает весь цикл — от создания теста
             до аналитики результатов.

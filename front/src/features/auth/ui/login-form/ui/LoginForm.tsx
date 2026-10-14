@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router";
-import { Button } from "../../../../shared/index";
-import { Input } from "../../../../shared/index";
+import { Link, useNavigate } from "react-router";
+import { Button } from "../../../../../shared/index";
+import { Input } from "../../../../../shared/index";
 import styles from "./LoginForm.module.css";
+import { useLogin } from "../../../api/queries";
+import { HttpError } from "../../../api/client";
 
 type FormState = {
   email: string;
@@ -20,13 +22,17 @@ export function LoginForm() {
   });
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
-
+  const [serverError, setServerError] = useState<string | null>(null);
+  
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) {
       setErrors((prev) => ({ ...prev, [key]: undefined }));
     }
   };
+    const navigate = useNavigate();
+
+  const login = useLogin();
 
   const validate = (): Errors => {
     const next: Errors = {};
@@ -57,10 +63,24 @@ export function LoginForm() {
 
     setSubmitting(true);
 
-    try {
-      // TODO: заменить на реальный вызов API
-      console.log("Login payload:", form);
-      await new Promise((r) => setTimeout(r, 800));
+     try {
+      await login.mutateAsync({
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      if (err instanceof HttpError) {
+        if (err.code === "INVALID_CREDENTIALS") {
+          setServerError("Неверный email или пароль");
+        } else if (err.code === "REQUEST_TOO_LARGE") {
+          setServerError("Слишком большой запрос");
+        } else {
+          setServerError(err.message);
+        }
+      } else {
+        setServerError("Не удалось войти. Попробуйте позже.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -68,6 +88,8 @@ export function LoginForm() {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
+      {serverError && <div className={styles.error}>{serverError}</div>}
+
       <Input
         label="Email"
         type="email"

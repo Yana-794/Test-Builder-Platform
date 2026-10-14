@@ -1,1 +1,25 @@
+# ── IDE ──
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── ОС ──
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Env / секреты ──
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Логи ──
+*.log
+logs/
+
+# ── Docker override ──
+docker-compose.override.yml
+docker-compose.*.local.yml

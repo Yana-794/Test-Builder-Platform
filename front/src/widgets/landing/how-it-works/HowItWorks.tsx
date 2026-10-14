@@ -50,7 +50,9 @@ export function HowItWorks() {
                   <h3 className={styles.stepTitle}>{step.title}</h3>
                   <p className={styles.stepText}>{step.text}</p>
                 </div>
+             
               </div>
+             
             )
           })}
         </div>
