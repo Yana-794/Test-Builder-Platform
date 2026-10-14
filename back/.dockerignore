@@ -7,3 +7,16 @@ tests/
 docs/
 bin/
 tmp/
+
+.gitignore
+.idea/
+.vscode/
+
+LICENSE
+
+
+
+dist/
+*.exe
+coverage.out
+*.test
