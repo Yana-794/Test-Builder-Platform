@@ -13,7 +13,7 @@ export const router = createBrowserRouter([
   { path: '/register', element: <RegisterPage /> },
   { path: '/verify-email', element: <VerifyEmailPage /> },
   {
-    path: '/app',
+    path: '/dashboard',
     element: <ProtectedRoute />,
     children: [{ index: true, element: <DashboardPage /> }],
   },

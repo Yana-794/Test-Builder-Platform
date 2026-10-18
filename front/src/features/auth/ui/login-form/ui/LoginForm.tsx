@@ -1,10 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
-import { Button } from "../../../../../shared/index";
-import { Input } from "../../../../../shared/index";
+import { Button, Input } from "../../../../../shared";
 import styles from "./LoginForm.module.css";
 import { useLogin } from "../../../api/queries";
-import { HttpError } from "../../../api/client";
+import { ApiError } from "../../../../../shared/api/http/ApiError";
 
 type FormState = {
   email: string;
@@ -14,6 +13,10 @@ type FormState = {
 
 type Errors = Partial<Record<keyof FormState, string>>;
 
+const MIN_PASSWORD_LENGTH = 12;
+
+
+
 export function LoginForm() {
   const [form, setForm] = useState<FormState>({
     email: "",
@@ -21,18 +24,17 @@ export function LoginForm() {
     remember: false,
   });
   const [errors, setErrors] = useState<Errors>({});
-  const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  
+
+  const navigate = useNavigate();
+  const login = useLogin();
+
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) {
       setErrors((prev) => ({ ...prev, [key]: undefined }));
     }
   };
-    const navigate = useNavigate();
-
-  const login = useLogin();
 
   const validate = (): Errors => {
     const next: Errors = {};
@@ -45,15 +47,16 @@ export function LoginForm() {
 
     if (!form.password) {
       next.password = "Введите пароль";
-    } else if (form.password.length < 8) {
-      next.password = "Минимум 8 символов";
-    }
+    } else if (form.password.length < MIN_PASSWORD_LENGTH) {
+      next.password = `Минимум ${MIN_PASSWORD_LENGTH} символов`;
+    } 
 
     return next;
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setServerError(null);
 
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -61,30 +64,45 @@ export function LoginForm() {
       return;
     }
 
-    setSubmitting(true);
-
-     try {
+    try {
       await login.mutateAsync({
         email: form.email.trim().toLowerCase(),
         password: form.password,
       });
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      if (err instanceof HttpError) {
-        if (err.code === "INVALID_CREDENTIALS") {
-          setServerError("Неверный email или пароль");
-        } else if (err.code === "REQUEST_TOO_LARGE") {
-          setServerError("Слишком большой запрос");
-        } else {
-          setServerError(err.message);
+      if (err instanceof ApiError) {
+        switch (err.code) {
+          case "INVALID_CREDENTIALS":
+            setServerError("Неверный email или пароль");
+            break;
+          case "VALIDATION_ERROR":
+            setServerError(
+              "Проверьте email и пароль. Пароль — не менее 12 символов и не более 128 байт.",
+            );
+            break;
+          case "CSRF_VALIDATION_FAILED":
+            // Сюда логин попасть не должен, но на всякий случай
+            setServerError(
+              "Сессия устарела. Обновите страницу и попробуйте снова.",
+            );
+            break;
+          case "REQUEST_TOO_LARGE":
+            setServerError("Слишком большой запрос");
+            break;
+          case "INTERNAL_ERROR":
+            setServerError("Что-то пошло не так. Попробуйте позже.");
+            break;
+          default:
+            setServerError(err.message);
         }
       } else {
         setServerError("Не удалось войти. Попробуйте позже.");
       }
-    } finally {
-      setSubmitting(false);
     }
   };
+
+  const submitting = login.isPending;
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -104,13 +122,18 @@ export function LoginForm() {
         label="Пароль"
         type="password"
         autoComplete="current-password"
-        placeholder="••••••••"
+        placeholder="••••••••••••"
         value={form.password}
         onChange={(e) => update("password", e.target.value)}
         error={errors.password}
       />
 
       <div className={styles.row}>
+        {/*
+         TODO: "remember me"
+          Login всегда ставит cookie с фиксированным Expires из result.ExpiresAt.
+          
+        */}
         <label className={styles.checkbox}>
           <input
             type="checkbox"

@@ -19,10 +19,3 @@ export type LoginPayload = {
   email: string;
   password: string;
 };
-
-export type ApiError = { //TODO: зарегистрировать ошибку для всего приложения
-  error: {
-    code: string;
-    message: string;
-  };
-};

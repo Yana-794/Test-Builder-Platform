@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiFetch, HttpError, setCsrfToken } from "./client";
+import { getCsrfToken } from "../../../shared/api/http/client";
+import { httpClient, setCsrfToken } from "../../../shared/api/http/client";
+import { ApiError } from "../../../shared/api/http";
 import { authKeys } from "./queryKeys";
 import type {
   AuthResponse,
@@ -13,20 +15,19 @@ export function useMe() {
     queryKey: authKeys.me(),
     queryFn: async () => {
       try {
-        const data = await apiFetch<AuthResponse>("/auth/me");
+        const data = await httpClient.get<AuthResponse>("/auth/me");
         setCsrfToken(data.csrf_token);
         return data;
       } catch (err) {
-        // 401
-        if (err instanceof HttpError && err.status === 401) {
+        if (err instanceof ApiError && err.status === 401) {
           setCsrfToken(null);
           return null;
         }
         throw err;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 минут
-    retry: false, // 401
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 
@@ -35,10 +36,7 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: (payload: LoginPayload) =>
-      apiFetch<AuthResponse>("/auth/login", {
-        method: "POST",
-        body: payload,
-      }),
+      httpClient.post<AuthResponse>("/auth/login", { body: payload }),
     onSuccess: (data) => {
       setCsrfToken(data.csrf_token);
       queryClient.setQueryData(authKeys.me(), data);
@@ -51,10 +49,7 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: (payload: RegisterPayload) =>
-      apiFetch<{ user: User }>("/auth/register", {
-        method: "POST",
-        body: payload,
-      }),
+      httpClient.post<{ user: User }>("/auth/register", { body: payload }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authKeys.all });
     },
@@ -65,15 +60,17 @@ export function useLogout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => apiFetch<void>("/auth/logout", { method: "POST" }),
-    onSuccess: () => {
+    mutationFn: () => {
+      if (!getCsrfToken()) {
+        const cached = queryClient.getQueryData<AuthResponse>(authKeys.me());
+        if (cached?.csrf_token) setCsrfToken(cached.csrf_token);
+      }
+      return httpClient.post<void>("/auth/logout");
+    },
+    onSettled: () => {
       setCsrfToken(null);
       queryClient.setQueryData(authKeys.me(), null);
       queryClient.removeQueries({ queryKey: authKeys.all });
-    },
-    onError: () => {
-      setCsrfToken(null);
-      queryClient.setQueryData(authKeys.me(), null);
     },
   });
 }

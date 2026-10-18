@@ -29,7 +29,7 @@ func New(
 		securityHeaders(isProduction),
 		cors.New(cors.Config{
 			AllowOrigins:     []string{frontendOrigin},
-			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "X-CSRF-Token"},
 			AllowCredentials: true,
 			MaxAge:           12 * time.Hour,
@@ -64,7 +64,7 @@ func New(
 		authRoutes.POST("/register", authHandler.Register)
 		authRoutes.POST("/login", authHandler.Login)
 		authRoutes.POST("/logout", authHandler.Logout)
-		authRoutes.GET("/me", authHandler.RequireAuth(), authHandler.Me)
+		authRoutes.GET("/app", authHandler.RequireAuth(), authHandler.Me)
 	}
 
 	return router

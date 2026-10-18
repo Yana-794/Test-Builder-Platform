@@ -1,11 +1,9 @@
 import { useState, type FormEvent } from "react";
-import { Button } from "../../../../../shared/index";
-import { Input } from "../../../../../shared/index";
-import styles from "./RegisterForm.module.css";
 import { useNavigate } from "react-router";
-import { useRegister, useLogin } from "../../../api/queries";
-import { HttpError } from "../../../api/client";
-
+import { Button, Input } from "../../../../../shared";
+import styles from "./RegisterForm.module.css";
+import { useLogin, useRegister } from "../../../api/queries";
+import { ApiError } from "../../../../../shared/api/http/ApiError";
 type FormState = {
   name: string;
   email: string;
@@ -16,12 +14,16 @@ type FormState = {
 
 type Errors = Partial<Record<keyof FormState, string>>;
 
+const MIN_PASSWORD_LENGTH = 10;
+
+
+
 export function RegisterForm() {
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const register = useRegister();
   const login = useLogin();
-  const [serverError, setServerError] = useState<string | null>(null);
 
+  const [serverError, setServerError] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>({
     name: "",
     email: "",
@@ -30,7 +32,6 @@ const navigate = useNavigate();
     agree: false,
   });
   const [errors, setErrors] = useState<Errors>({});
-  const [submitting, setSubmitting] = useState(false);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -56,11 +57,9 @@ const navigate = useNavigate();
 
     if (!form.password) {
       next.password = "Введите пароль";
-    } else if (form.password.length < 8) {
-      next.password = "Минимум 8 символов";
-    } else if (!/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) {
-      next.password = "Пароль должен содержать буквы и цифры";
-    }
+    } else if (form.password.length < MIN_PASSWORD_LENGTH) {
+      next.password = `Минимум ${MIN_PASSWORD_LENGTH} символов`;
+    } 
 
     if (!form.confirmPassword) {
       next.confirmPassword = "Подтвердите пароль";
@@ -77,6 +76,7 @@ const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setServerError(null);
 
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -84,34 +84,58 @@ const navigate = useNavigate();
       return;
     }
 
-    setSubmitting(true);
+    const email = form.email.trim().toLowerCase();
+    const displayName = form.name.trim();
 
     try {
       await register.mutateAsync({
-        display_name: form.name.trim(),
-        email: form.email.trim().toLowerCase(),
+        display_name: displayName,
+        email,
         password: form.password,
       });
-      // После успешной регистрации, автоматически войти
-      await login.mutateAsync({
-        email: form.email.trim().toLowerCase(),
-        password: form.password,
-      });
-      navigate("/dashboard", { replace: true });
     } catch (err) {
-      if (err instanceof HttpError) {
-        setServerError(err.message);
+      if (err instanceof ApiError) {
+        switch (err.code) {
+          case "EMAIL_ALREADY_REGISTERED":
+            setServerError("Аккаунт с таким email уже существует");
+            break;
+          case "INTERNAL_ERROR":
+            setServerError("Что-то пошло не так. Попробуйте позже.");
+            break;
+          default:
+            setServerError(err.message);
+        }
       } else {
         setServerError("Не удалось создать аккаунт. Попробуйте позже.");
       }
-    } finally {
-      setSubmitting(false);
+      return;
+    }
+
+    try {
+      await login.mutateAsync({ email, password: form.password });
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setServerError(
+          "Аккаунт создан, но автоматический вход не удался. Войдите вручную.",
+        );
+      } else {
+        setServerError("Аккаунт создан. Войдите, чтобы продолжить.");
+      }
+     
+     navigate("/login", { replace: true });
     }
   };
 
+  const submitting = register.isPending || login.isPending;
+
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      {serverError && <div role="alert">{serverError}</div>}
+      {serverError && (
+        <div role="alert" className={styles.error}>
+          {serverError}
+        </div>
+      )}
 
       <Input
         label="Имя"
@@ -137,13 +161,13 @@ const navigate = useNavigate();
         label="Пароль"
         type="password"
         autoComplete="new-password"
-        placeholder="Минимум 8 символов"
+        placeholder={`Минимум ${MIN_PASSWORD_LENGTH} символов`}
         value={form.password}
         onChange={(e) => update("password", e.target.value)}
         error={errors.password}
         hint={
           !errors.password
-            ? "Минимум 8 символов, содержит буквы и цифры"
+            ? `От ${MIN_PASSWORD_LENGTH} символов. Используйте буквы, цифры и символы для надёжного пароля.`
             : undefined
         }
       />
@@ -165,24 +189,7 @@ const navigate = useNavigate();
             checked={form.agree}
             onChange={(e) => update("agree", e.target.checked)}
           />
-          <span>
-            Я согласен с{" "}
-            <a
-              href="#"
-              className={styles.termsLink}
-              onClick={(e) => e.preventDefault()}
-            >
-              условиями использования
-            </a>{" "}
-            и{" "}
-            <a
-              href="#"
-              className={styles.termsLink}
-              onClick={(e) => e.preventDefault()}
-            >
-              политикой конфиденциальности
-            </a>
-          </span>
+      
         </label>
         {errors.agree && (
           <span className={styles.termsError}>{errors.agree}</span>
