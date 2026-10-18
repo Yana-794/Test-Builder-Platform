@@ -1,14 +1,18 @@
-import type { ReactNode } from 'react'
+import { Navigate, Outlet, useLocation } from "react-router";
+import { useAuth } from "../../features/auth/hooks/useAuth";
 
-type Props = {
-  children: ReactNode
-}
+export function ProtectedRoute() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
-export function ProtectedRoute({ children }: Props) {
-  // TODO: когда появится useAuth — проверить сессию
-  // const { user, isLoading } = useAuth()
-  // if (isLoading) return <FullPageSpinner />
-  // if (!user) return <Navigate to="/login" replace state={{ from: location }} />
+  // Пока грузим /me — не решаем, гость или нет
+  if (isLoading) {
+    return <div>Loading…</div>; 
+  }
 
-  return <>{children}</>
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <Outlet />;
 }

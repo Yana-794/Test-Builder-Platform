@@ -14,12 +14,7 @@ type AuthLoyautProps = {
 export const AuthLoyaut: FC<AuthLoyautProps> = ({title, subtitle, children, footer}) => {
 return (
     <div className={styles.page}>
-    <div className={styles.toBar}>
-        <Link to="/" className={styles.backLink}>
-          <ArrowLeft size={16} strokeWidth={2} />
-          <span>Вернуться на главную</span>
-        </Link>
-    </div>
+   
      <div className={styles.content}>
         <div className={styles.logoWrap}>
             <Logo variant="default"/>
@@ -41,6 +36,12 @@ return (
                 <div className={styles.footer}>{footer}</div>
             )}
         </div>
+         <div className={styles.toBar}>
+        <Link to="/" className={styles.backLink}>
+          <ArrowLeft size={16} strokeWidth={2} />
+          <span>Вернуться на главную</span>
+        </Link>
+    </div>
      </div>
     </div>
 )

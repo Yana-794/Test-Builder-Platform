@@ -1,7 +1,6 @@
 import { Button } from '../../../shared//index'
-// import lending from '../../../asset/lending.png'
 import styles from './Hero.module.css'
-import video from '../../../asset/video.webm'
+import video from '../../../assets/video.webm'
 export function Hero() {
   const handleHowItWorks = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()

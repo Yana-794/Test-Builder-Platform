@@ -244,6 +244,9 @@
     max-width: 480px;
   }
 }
+.primaryText{
+  color: var(--color-primary);
+}
 
 @media (max-width: 768px) {
   .section {

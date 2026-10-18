@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import styles from './Logo.module.css'
- import logo from '../../../asset/logo.png'
+ import logo from '../../../assets/logo.png'
 
 type Props = {
   to?: string;

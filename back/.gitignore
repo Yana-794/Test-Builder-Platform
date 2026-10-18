@@ -1,0 +1,25 @@
+# ── Бинарники ──
+bin/
+dist/
+/api
+/server
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ── Тесты ──
+*.test
+*.out
+coverage.out
+
+# ── Профили ──
+*.prof
+
+# ── Vendor ──
+# vendor/
+
+# ── Локальные env ──
+.env
+.env.local
+.env.*.local

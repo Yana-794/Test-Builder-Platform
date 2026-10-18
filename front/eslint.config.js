@@ -16,13 +16,14 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
+      ecmaVersion:2020,
       globals: globals.browser,
     },
     build: {
     rolldownOptions: {
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, './src'),
+          '@': path.resolve(__dirname, 'src'),
         },
       },
     },
