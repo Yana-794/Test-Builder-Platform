@@ -4,7 +4,7 @@ POST   /api/auth/logout                                     → 204
 GET    /api/auth/me                                         → {user}
 
 GET    /api/tests                                           → Test[]
-POST   /api/tests             {title, description}          → Test
+POST   /api/tests              {title, description}          → Test
 GET    /api/tests/:id                                       → Test
 PATCH  /api/tests/:id         {title, description}          → Test
 DELETE /api/tests/:id                                       → 204

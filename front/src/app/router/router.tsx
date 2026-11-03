@@ -6,6 +6,8 @@ import { VerifyEmailPage } from '../../pages/auth/verify-email/VerifyEmailPage'
 import { NotFoundPage } from '../../pages/not-found/NotFoundPage'
 import { DashboardPage } from '../../pages/dashboard/DashboardPage'
 import { ProtectedRoute } from './ProtectedRoute'
+import { AppLayout } from '../../widgets/app-layout/AppLayout'
+import { TestsPage } from '../../pages/test-list-page/TestsPage'
 
 export const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -13,9 +15,20 @@ export const router = createBrowserRouter([
   { path: '/register', element: <RegisterPage /> },
   { path: '/verify-email', element: <VerifyEmailPage /> },
   {
-    path: '/dashboard',
     element: <ProtectedRoute />,
-    children: [{ index: true, element: <DashboardPage /> }],
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          { path: '/app', element: <DashboardPage /> },
+          { path: '/app/tests', element: <TestsPage /> },
+            // { path: '/app/tests/new', element: <CreateTestPage /> },
+            // { path: '/app/students', element: <StudentsPage /> },
+            // { path: '/app/results', element: <ResultsPage /> },
+            // { path: '/app/profile', element: <ProfilePage /> },
+        ],
+      },
+    ],
   },
   { path: '*', element: <NotFoundPage /> },
 ])
