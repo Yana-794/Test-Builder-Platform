@@ -1,0 +1,19 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.published {
+  background: #d1fae5;
+  color: #065f46;
+}

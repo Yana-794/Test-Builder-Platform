@@ -9,6 +9,7 @@ import type {
   RegisterPayload,
   User,
 } from "./types";
+import { useNavigate } from "react-router";
 
 export function useMe() {
   return useQuery<AuthResponse | null>({
@@ -58,6 +59,7 @@ export function useRegister() {
 
 export function useLogout() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: () => {
@@ -70,7 +72,10 @@ export function useLogout() {
     onSettled: () => {
       setCsrfToken(null);
       queryClient.setQueryData(authKeys.me(), null);
-      queryClient.removeQueries({ queryKey: authKeys.all });
+      queryClient.removeQueries({
+        predicate: (q) => q.queryKey[0] !== "auth",
+      });
+      navigate("/login", { replace: true });
     },
   });
 }

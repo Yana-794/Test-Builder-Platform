@@ -12,6 +12,7 @@ import (
 
 	"test-builder/internal/auth"
 	"test-builder/internal/config"
+	"test-builder/internal/dashboard"
 	"test-builder/internal/database"
 	"test-builder/internal/httpserver"
 )
@@ -36,7 +37,6 @@ func run() error {
 
 	log.Printf("connected to PostgreSQL")
 
-	
 	authRepo := auth.NewRepository(pool)
 
 	authService, err := auth.NewService(authRepo)
@@ -44,11 +44,12 @@ func run() error {
 		return err
 	}
 
-	
 	authHandler := auth.NewHandler(authService, cfg.AppEnv)
-
+	dashboardRepo := dashboard.NewRepository(pool)
+	dashboardSvc := dashboard.NewService(dashboardRepo)
+	dashboardHandler := dashboard.NewHandler(dashboardSvc)
 	// HTTP-роутер
-	router := httpserver.New(authHandler, cfg.FrontendOrigin, cfg.AppEnv)
+	router := httpserver.New(authHandler, dashboardHandler, cfg.FrontendOrigin, cfg.AppEnv)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
@@ -59,7 +60,6 @@ func run() error {
 		IdleTimeout:       60 * time.Second,
 	}
 
-	
 	serverErr := make(chan error, 1)
 	go func() {
 		log.Printf("starting server on %s (env=%s)", cfg.HTTPAddr, cfg.AppEnv)

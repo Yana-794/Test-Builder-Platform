@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"test-builder/internal/auth"
+	"test-builder/internal/dashboard"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,7 @@ import (
 
 func New(
 	authHandler *auth.Handler,
+	dashboardHandler *dashboard.Handler,
 	frontendOrigin string,
 	appEnv string,
 ) *gin.Engine {
@@ -64,7 +66,13 @@ func New(
 		authRoutes.POST("/register", authHandler.Register)
 		authRoutes.POST("/login", authHandler.Login)
 		authRoutes.POST("/logout", authHandler.Logout)
-		authRoutes.GET("/app", authHandler.RequireAuth(), authHandler.Me)
+		authRoutes.GET("/me", authHandler.RequireAuth(), authHandler.Me)
+	}
+
+	dashboardRoutes := router.Group("/app")
+	dashboardRoutes.Use(authHandler.RequireAuth())
+	{
+		dashboardRoutes.GET("/overview", dashboardHandler.GetOverview)
 	}
 
 	return router

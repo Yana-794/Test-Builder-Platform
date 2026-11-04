@@ -22,4 +22,6 @@ logs/
 
 # ── Docker override ──
 docker-compose.override.yml
-docker-compose.*.local.yml
+docker-compose.*.local.ymlcookies.txt
+cookies*.txt
+cookies*.txt

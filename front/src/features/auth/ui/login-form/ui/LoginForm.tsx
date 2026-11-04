@@ -69,7 +69,7 @@ export function LoginForm() {
         email: form.email.trim().toLowerCase(),
         password: form.password,
       });
-      navigate("/dashboard", { replace: true });
+      navigate("/app", { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
         switch (err.code) {

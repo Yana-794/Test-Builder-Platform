@@ -2,7 +2,7 @@ import type { FC } from "react";
 import { useNavigate } from "react-router";
 import { Plus } from "lucide-react";
 import { EmptyState } from "../../shared/ui/empty-state/Empty";
-import emptyImage from "../../assets/Empty.png";
+import emptyImage from "../../assets/empty.png";
 import styles from "./TestsPage.module.css";
 
 export const TestsPage: FC = () => {

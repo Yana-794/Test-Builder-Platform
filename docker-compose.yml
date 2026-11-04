@@ -25,7 +25,7 @@ services:
       APP_ENV: ${APP_ENV}
       HTTP_ADDR: ${HTTP_ADDR}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
-      DATABASE_URL: "postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable&search_path=app"
+      DATABASE_URL: "postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable"
       GIN_MODE: release
     depends_on:
       db:

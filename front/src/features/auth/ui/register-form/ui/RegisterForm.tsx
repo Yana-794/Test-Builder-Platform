@@ -113,7 +113,7 @@ export function RegisterForm() {
 
     try {
       await login.mutateAsync({ email, password: form.password });
-      navigate("/dashboard", { replace: true });
+      navigate("/app", { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
         setServerError(
