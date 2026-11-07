@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -10,12 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
-
-type Handler struct {
-	service *Service
+type testsService interface {
+	CreateTest(ctx context.Context, ownerID uuid.UUID, req CreateTestRequest) (Test, error)
+	GetTestForEditor(ctx context.Context, ownerID, testID uuid.UUID) (Test, []Question, error)
+	SaveDraft(ctx context.Context, ownerID, testID uuid.UUID, req SaveDraftRequest) (Test, []Question, error)
 }
+type Handler struct {
+	service testsService}
 
-func NewHandler(service *Service) *Handler {
+func NewHandler(service testsService) *Handler {
 	return &Handler{service: service}
 }
 
