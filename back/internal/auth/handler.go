@@ -68,6 +68,18 @@ func bindError(c *gin.Context, err error) {
 		"INVALID_REQUEST", err.Error())
 }
 
+// Register godoc
+// @Summary      Регистрация пользователя
+// @Description  Создаёт нового пользователя по email, имени и паролю
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body auth.RegisterRequest true "Данные регистрации"
+// @Success      201  {object}  auth.RegisterResponse
+// @Failure      400  {object}  map[string]interface{}
+// @Failure      409  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /auth/register [post]
 func (h *Handler) Register(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 
@@ -105,11 +117,22 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"user": toUserResponse(user),
+	c.JSON(http.StatusCreated, RegisterResponse{User: toUserResponse(user),
 	})
 }
 
+// Login godoc
+// @Summary      Вход в систему
+// @Description  Проверяет email и пароль, устанавливает cookie-сессию
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body auth.LoginRequest true "Учётные данные"
+// @Success      200  {object}  auth.AuthResponse
+// @Failure      400  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /auth/login [post]
 func (h *Handler) Login(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 
@@ -207,6 +230,15 @@ func (h *Handler) RequireAuth() gin.HandlerFunc {
 	}
 }
 
+// Me godoc
+// @Summary      Текущий пользователь
+// @Description  Возвращает данные авторизованного пользователя и CSRF-токен
+// @Tags         auth
+// @Produce      json
+// @Success      200  {object}  auth.AuthResponse
+// @Failure      401  {object}  map[string]interface{}
+// @Router       /auth/me [get]
+// @Security     CookieAuth
 func (h *Handler) Me(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 
@@ -218,6 +250,16 @@ func (h *Handler) Me(c *gin.Context) {
 	})
 }
 
+// Logout godoc
+// @Summary      Выход
+// @Description  Отзывает текущую сессию и очищает cookie
+// @Tags         auth
+// @Success      204
+// @Failure      401  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /auth/logout [post]
+// @Security     CookieAuth
+// @Security     CsrfToken
 func (h *Handler) Logout(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 

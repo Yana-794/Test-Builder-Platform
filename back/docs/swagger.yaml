@@ -1,0 +1,513 @@
+basePath: /api
+definitions:
+  auth.AuthResponse:
+    properties:
+      csrf_token:
+        type: string
+      user:
+        $ref: '#/definitions/auth.UserResponse'
+    type: object
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.RegisterRequest:
+    properties:
+      display_name:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.RegisterResponse:
+    properties:
+      user:
+        $ref: '#/definitions/auth.UserResponse'
+    type: object
+  auth.UserResponse:
+    properties:
+      created_at:
+        type: string
+      display_name:
+        type: string
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      id:
+        type: string
+    type: object
+  dashboard.DashboardResponse:
+    properties:
+      recentTests:
+        items:
+          $ref: '#/definitions/dashboard.RecentTestResponse'
+        type: array
+      stats:
+        $ref: '#/definitions/dashboard.DashboardStatsResponse'
+    type: object
+  dashboard.DashboardStatsResponse:
+    properties:
+      draftTests:
+        type: integer
+      publishedTests:
+        type: integer
+      totalTests:
+        type: integer
+    type: object
+  dashboard.RecentTestResponse:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  tests.AnswerOptionDTO:
+    properties:
+      id:
+        type: string
+      isCorrect:
+        type: boolean
+      position:
+        type: integer
+      text:
+        type: string
+    type: object
+  tests.CreateTestRequest:
+    properties:
+      description:
+        type: string
+      subject:
+        type: string
+      title:
+        type: string
+    type: object
+  tests.DraftItem:
+    properties:
+      correctTextAnswer:
+        type: string
+      id:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/tests.DraftOptionItem'
+        type: array
+      points:
+        type: number
+      prompt:
+        type: string
+      type:
+        type: string
+    type: object
+  tests.DraftOptionItem:
+    properties:
+      id:
+        type: string
+      isCorrect:
+        type: boolean
+      text:
+        type: string
+    type: object
+  tests.DraftTest:
+    properties:
+      description:
+        type: string
+      subject:
+        type: string
+      title:
+        type: string
+    type: object
+  tests.EditorTestDTO:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      questions:
+        items:
+          $ref: '#/definitions/tests.QuestionDTO'
+        type: array
+      revision:
+        type: integer
+      status:
+        type: string
+      subject:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  tests.ErrorBody:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/tests.FieldDetail'
+        type: array
+      message:
+        type: string
+    type: object
+  tests.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/tests.ErrorBody'
+    type: object
+  tests.FieldDetail:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  tests.QuestionDTO:
+    properties:
+      correctTextAnswer:
+        type: string
+      id:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/tests.AnswerOptionDTO'
+        type: array
+      points:
+        type: number
+      position:
+        type: integer
+      prompt:
+        type: string
+      type:
+        type: string
+    type: object
+  tests.SaveDraftRequest:
+    properties:
+      expectedRevision:
+        type: integer
+      questions:
+        items:
+          $ref: '#/definitions/tests.DraftItem'
+        type: array
+      test:
+        $ref: '#/definitions/tests.DraftTest'
+    type: object
+  tests.TestDTO:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      revision:
+        type: integer
+      status:
+        type: string
+      subject:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  tests.TestEditorResponse:
+    properties:
+      test:
+        $ref: '#/definitions/tests.EditorTestDTO'
+    type: object
+  tests.TestResponse:
+    properties:
+      test:
+        $ref: '#/definitions/tests.TestDTO'
+    type: object
+host: localhost
+info:
+  contact: {}
+  description: API для платформы создания тестов
+  title: Test Builder Platform API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет email и пароль, устанавливает cookie-сессию
+      parameters:
+      - description: Учётные данные
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Вход в систему
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Отзывает текущую сессию и очищает cookie
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - CookieAuth: []
+      - CsrfToken: []
+      summary: Выход
+      tags:
+      - auth
+  /auth/me:
+    get:
+      description: Возвращает данные авторизованного пользователя и CSRF-токен
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Текущий пользователь
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового пользователя по email, имени и паролю
+      parameters:
+      - description: Данные регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /dashboard/overview:
+    get:
+      description: Статистика тестов и последние 5 тестов текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dashboard.DashboardResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Сводка Dashboard
+      tags:
+      - dashboard
+  /tests:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новый тест со статусом draft. Владелец берётся из сессии.
+      parameters:
+      - description: Данные теста
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/tests.CreateTestRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/tests.TestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+      security:
+      - CookieAuth: []
+      - CsrfToken: []
+      summary: Создание черновика теста
+      tags:
+      - tests
+  /tests/{testId}:
+    get:
+      description: Возвращает метаданные, вопросы и варианты ответов. Только владельцу.
+      parameters:
+      - description: UUID теста
+        in: path
+        name: testId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tests.TestEditorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+      security:
+      - CookieAuth: []
+      summary: Получение теста для редактора
+      tags:
+      - tests
+  /tests/{testId}/draft:
+    put:
+      consumes:
+      - application/json
+      description: Атомарно сохраняет метаданные теста и все вопросы/варианты. Требует
+        expectedRevision.
+      parameters:
+      - description: UUID теста
+        in: path
+        name: testId
+        required: true
+        type: string
+      - description: Полное состояние черновика
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/tests.SaveDraftRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tests.TestEditorResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+      security:
+      - CookieAuth: []
+      - CsrfToken: []
+      summary: Сохранение черновика
+      tags:
+      - tests
+securityDefinitions:
+  CookieAuth:
+    description: 'Вставьте сюда строку вида: tbp_session=<токен из cookie>'
+    in: header
+    name: Cookie
+    type: apiKey
+  CsrfToken:
+    description: CSRF-токен (из ответа POST /auth/login или GET /auth/me)
+    in: header
+    name: X-CSRF-Token
+    type: apiKey
+swagger: "2.0"

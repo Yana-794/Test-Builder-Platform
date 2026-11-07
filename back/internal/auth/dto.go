@@ -7,7 +7,9 @@ type RegisterRequest struct {
 	DisplayName string `json:"display_name"`
 	Password    string `json:"password"`
 }
-
+type RegisterResponse struct {
+	User UserResponse `json:"user"`
+}
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

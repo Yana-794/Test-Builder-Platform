@@ -1,3 +1,18 @@
+// @title           Test Builder Platform API
+// @version         1.0
+// @description     API для платформы создания тестов
+// @host            localhost
+// @BasePath        /api
+
+// @securityDefinitions.apikey  CookieAuth
+// @in                          header
+// @name                        Cookie
+// @description                 Вставьте сюда строку вида: tbp_session=<токен из cookie>
+
+// @securityDefinitions.apikey  CsrfToken
+// @in                          header
+// @name                        X-CSRF-Token
+// @description                 CSRF-токен (из ответа POST /auth/login или GET /auth/me)
 package main
 
 import (

@@ -24,6 +24,16 @@ func NewHandler(svc overviewGetter) *Handler {
 	return &Handler{service: svc}
 }
 
+// GetOverview godoc
+// @Summary      Сводка Dashboard
+// @Description  Статистика тестов и последние 5 тестов текущего пользователя
+// @Tags         dashboard
+// @Produce      json
+// @Success      200  {object}  DashboardResponse
+// @Failure      401  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /dashboard/overview [get]
+// @Security     CookieAuth
 func (h *Handler) GetOverview(c *gin.Context) {
 	 c.Header("Cache-Control", "no-store")
 

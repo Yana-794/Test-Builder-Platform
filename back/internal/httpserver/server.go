@@ -12,6 +12,9 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	_ "test-builder/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func New(
@@ -84,6 +87,9 @@ func New(
 		testsRoutes.POST("", testsHandler.CreateTest)
 		testsRoutes.GET("/:testId", testsHandler.GetTest)
 		testsRoutes.PUT("/:testId/draft", testsHandler.SaveDraft)
+	}
+	if !isProduction {
+		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
 	return router

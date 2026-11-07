@@ -1,0 +1,793 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API для платформы создания тестов",
+        "title": "Test Builder Platform API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost",
+    "basePath": "/api",
+    "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Проверяет email и пароль, устанавливает cookie-сессию",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Вход в систему",
+                "parameters": [
+                    {
+                        "description": "Учётные данные",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    },
+                    {
+                        "CsrfToken": []
+                    }
+                ],
+                "description": "Отзывает текущую сессию и очищает cookie",
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Выход",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "description": "Возвращает данные авторизованного пользователя и CSRF-токен",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Текущий пользователь",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.AuthResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Создаёт нового пользователя по email, имени и паролю",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Регистрация пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные регистрации",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/auth.RegisterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboard/overview": {
+            "get": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "description": "Статистика тестов и последние 5 тестов текущего пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Сводка Dashboard",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dashboard.DashboardResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/tests": {
+            "post": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    },
+                    {
+                        "CsrfToken": []
+                    }
+                ],
+                "description": "Создаёт новый тест со статусом draft. Владелец берётся из сессии.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tests"
+                ],
+                "summary": "Создание черновика теста",
+                "parameters": [
+                    {
+                        "description": "Данные теста",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tests.CreateTestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/tests.TestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tests/{testId}": {
+            "get": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "description": "Возвращает метаданные, вопросы и варианты ответов. Только владельцу.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tests"
+                ],
+                "summary": "Получение теста для редактора",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID теста",
+                        "name": "testId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tests.TestEditorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tests/{testId}/draft": {
+            "put": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    },
+                    {
+                        "CsrfToken": []
+                    }
+                ],
+                "description": "Атомарно сохраняет метаданные теста и все вопросы/варианты. Требует expectedRevision.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tests"
+                ],
+                "summary": "Сохранение черновика",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID теста",
+                        "name": "testId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Полное состояние черновика",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tests.SaveDraftRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tests.TestEditorResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "auth.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "csrf_token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/auth.UserResponse"
+                }
+            }
+        },
+        "auth.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.RegisterRequest": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "$ref": "#/definitions/auth.UserResponse"
+                }
+            }
+        },
+        "auth.UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "email_verified": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dashboard.DashboardResponse": {
+            "type": "object",
+            "properties": {
+                "recentTests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dashboard.RecentTestResponse"
+                    }
+                },
+                "stats": {
+                    "$ref": "#/definitions/dashboard.DashboardStatsResponse"
+                }
+            }
+        },
+        "dashboard.DashboardStatsResponse": {
+            "type": "object",
+            "properties": {
+                "draftTests": {
+                    "type": "integer"
+                },
+                "publishedTests": {
+                    "type": "integer"
+                },
+                "totalTests": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dashboard.RecentTestResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.AnswerOptionDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "isCorrect": {
+                    "type": "boolean"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.CreateTestRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.DraftItem": {
+            "type": "object",
+            "properties": {
+                "correctTextAnswer": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tests.DraftOptionItem"
+                    }
+                },
+                "points": {
+                    "type": "number"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.DraftOptionItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "isCorrect": {
+                    "type": "boolean"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.DraftTest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.EditorTestDTO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tests.QuestionDTO"
+                    }
+                },
+                "revision": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.ErrorBody": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tests.FieldDetail"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/tests.ErrorBody"
+                }
+            }
+        },
+        "tests.FieldDetail": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.QuestionDTO": {
+            "type": "object",
+            "properties": {
+                "correctTextAnswer": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tests.AnswerOptionDTO"
+                    }
+                },
+                "points": {
+                    "type": "number"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.SaveDraftRequest": {
+            "type": "object",
+            "properties": {
+                "expectedRevision": {
+                    "type": "integer"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tests.DraftItem"
+                    }
+                },
+                "test": {
+                    "$ref": "#/definitions/tests.DraftTest"
+                }
+            }
+        },
+        "tests.TestDTO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "revision": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.TestEditorResponse": {
+            "type": "object",
+            "properties": {
+                "test": {
+                    "$ref": "#/definitions/tests.EditorTestDTO"
+                }
+            }
+        },
+        "tests.TestResponse": {
+            "type": "object",
+            "properties": {
+                "test": {
+                    "$ref": "#/definitions/tests.TestDTO"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "CookieAuth": {
+            "description": "Вставьте сюда строку вида: tbp_session=\u003cтокен из cookie\u003e",
+            "type": "apiKey",
+            "name": "Cookie",
+            "in": "header"
+        },
+        "CsrfToken": {
+            "description": "CSRF-токен (из ответа POST /auth/login или GET /auth/me)",
+            "type": "apiKey",
+            "name": "X-CSRF-Token",
+            "in": "header"
+        }
+    }
+}

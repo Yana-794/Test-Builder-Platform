@@ -42,8 +42,21 @@ func bindError(c *gin.Context, err error) {
 		"VALIDATION_ERROR", "Invalid request body", nil)
 }
 
-// POST /tests
 
+// CreateTest godoc
+// @Summary      Создание черновика теста
+// @Description  Создаёт новый тест со статусом draft. Владелец берётся из сессии.
+// @Tags         tests
+// @Accept       json
+// @Produce      json
+// @Param        request body CreateTestRequest true "Данные теста"
+// @Success      201  {object}  TestResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      401  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /tests [post]
+// @Security     CookieAuth
+// @Security     CsrfToken
 func (h *Handler) CreateTest(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 
@@ -76,8 +89,18 @@ func (h *Handler) CreateTest(c *gin.Context) {
 	c.JSON(http.StatusCreated, TestResponse{Test: toTestDTO(test)})
 }
 
-// GET /tests/:testId
-
+// GetTest godoc
+// @Summary      Получение теста для редактора
+// @Description  Возвращает метаданные, вопросы и варианты ответов. Только владельцу.
+// @Tags         tests
+// @Produce      json
+// @Param        testId path string true "UUID теста"
+// @Success      200  {object}  TestEditorResponse
+// @Failure      401  {object}  ErrorResponse
+// @Failure      404  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /tests/{testId} [get]
+// @Security     CookieAuth
 func (h *Handler) GetTest(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 
@@ -108,8 +131,23 @@ func (h *Handler) GetTest(c *gin.Context) {
 	c.JSON(http.StatusOK, TestEditorResponse{Test: toEditorTestDTO(test, questions)})
 }
 
-// PUT /tests/:testId/draft
-
+// SaveDraft godoc
+// @Summary      Сохранение черновика
+// @Description  Атомарно сохраняет метаданные теста и все вопросы/варианты. Требует expectedRevision.
+// @Tags         tests
+// @Accept       json
+// @Produce      json
+// @Param        testId  path string            true "UUID теста"
+// @Param        request body SaveDraftRequest  true "Полное состояние черновика"
+// @Success      200  {object}  TestEditorResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      401  {object}  ErrorResponse
+// @Failure      404  {object}  ErrorResponse
+// @Failure      409  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /tests/{testId}/draft [put]
+// @Security     CookieAuth
+// @Security     CsrfToken
 func (h *Handler) SaveDraft(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 
