@@ -16,7 +16,21 @@ services:
       retries: 5
     networks:
       - backend_network
-
+  redis: 
+    image: redis:7-alpine
+    container_name: redis
+    command:  redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend_network
   back:
     build:
       context: ./back
@@ -27,8 +41,11 @@ services:
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
       DATABASE_URL: "postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable"
       GIN_MODE: release
+      REDIS_ADDR: "redis:6379"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - backend_network
@@ -47,6 +64,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   backend_network:

@@ -8,11 +8,13 @@ import (
 	"test-builder/internal/dashboard"
 	"test-builder/internal/tests"
 
+	_ "test-builder/docs"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	_ "test-builder/docs"
+	"github.com/go-redis/redis_rate/v10"
+	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -21,6 +23,7 @@ func New(
 	authHandler *auth.Handler,
 	dashboardHandler *dashboard.Handler,
 	testsHandler *tests.Handler,
+	rdb *redis.Client,
 	frontendOrigin string,
 	appEnv string,
 ) *gin.Engine {
@@ -63,14 +66,12 @@ func New(
 			},
 		})
 	})
-
-
-	//  без префикса /api — nginx его срезает 
+	authIPLimit := redis_rate.PerMinute(10)
 	authRoutes := router.Group("/auth")
 	authRoutes.Use(noStore())
 	{
-		authRoutes.POST("/register", authHandler.Register)
-		authRoutes.POST("/login", authHandler.Login)
+		authRoutes.POST("/register", rateLimitByIP(rdb, authIPLimit), authHandler.Register)
+		authRoutes.POST("/login", rateLimitByIP(rdb, authIPLimit), authHandler.Login)
 		authRoutes.POST("/logout", authHandler.Logout)
 		authRoutes.GET("/me", authHandler.RequireAuth(), authHandler.Me)
 	}

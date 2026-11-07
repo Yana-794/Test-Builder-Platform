@@ -16,6 +16,7 @@ type Config struct {
 	HTTPAddr       string // "0.0.0.0:8080"
 	FrontendOrigin string // "http://localhost" — для CORS
 	DatabaseURL    string 
+	RedisAddr	   string		
 }
 
 // Load читает env, валидирует и возвращает Config.
@@ -25,6 +26,7 @@ func Load() (Config, error) {
 		HTTPAddr:       getEnv("HTTP_ADDR", "0.0.0.0:8080"),
 		FrontendOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost"),
 		DatabaseURL:    strings.TrimSpace(os.Getenv("DATABASE_URL")),
+		RedisAddr:     getEnv("REDIS_ADDR", "localhost:6379"),
 	}
 
 	cfg.AppEnv = strings.ToLower(strings.TrimSpace(cfg.AppEnv))

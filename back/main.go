@@ -18,12 +18,15 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 
 	"test-builder/internal/auth"
 	"test-builder/internal/config"
@@ -49,9 +52,18 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	defer pool.Close()
 
+	defer pool.Close()
 	log.Printf("connected to PostgreSQL")
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisAddr,
+		DB:       0,
+	})
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		return fmt.Errorf("connect to redis: %w", err)
+	}
+	defer rdb.Close()
+	log.Printf("connected to Redis at %s", cfg.RedisAddr)
 
 	authRepo := auth.NewRepository(pool)
 
@@ -68,7 +80,7 @@ func run() error {
 	testsSvc := tests.NewService(testsRepo)
 	testsHandler := tests.NewHandler(testsSvc)
 	// HTTP-роутер
-	router := httpserver.New(authHandler, dashboardHandler, testsHandler, cfg.FrontendOrigin,  cfg.AppEnv)
+	router := httpserver.New(authHandler, dashboardHandler, testsHandler, rdb, cfg.FrontendOrigin, cfg.AppEnv)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
