@@ -15,6 +15,7 @@ import (
 	"test-builder/internal/dashboard"
 	"test-builder/internal/database"
 	"test-builder/internal/httpserver"
+	"test-builder/internal/tests"
 )
 
 func main() {
@@ -48,8 +49,11 @@ func run() error {
 	dashboardRepo := dashboard.NewRepository(pool)
 	dashboardSvc := dashboard.NewService(dashboardRepo)
 	dashboardHandler := dashboard.NewHandler(dashboardSvc)
+	testsRepo := tests.NewRepository(pool)
+	testsSvc := tests.NewService(testsRepo)
+	testsHandler := tests.NewHandler(testsSvc)
 	// HTTP-роутер
-	router := httpserver.New(authHandler, dashboardHandler, cfg.FrontendOrigin, cfg.AppEnv)
+	router := httpserver.New(authHandler, dashboardHandler, testsHandler, cfg.FrontendOrigin,  cfg.AppEnv)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
