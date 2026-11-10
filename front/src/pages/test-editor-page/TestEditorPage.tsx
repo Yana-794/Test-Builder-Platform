@@ -12,6 +12,7 @@ import {
   useSaveDraft,
 } from "../../features/tests/model/hooks/useSaveDraft";
 import { buildDraftPayload } from "../../features/tests/model/buildDraftPayload";
+import { PublishModal } from "../../features/tests/ui/PublishModal/PublishModal";
 
 export const TestEditorPage: FC = () => {
   const { testId = "" } = useParams<{ testId: string }>();
@@ -23,6 +24,7 @@ export const TestEditorPage: FC = () => {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [conflictOpen, setConflictOpen] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [publishOpen, setPublishOpen] = useState(false);
 
   // Выбор первого вопроса при первой загрузке
   useEffect(() => {
@@ -124,24 +126,27 @@ export const TestEditorPage: FC = () => {
         selectedKey={selectedKey}
         onSelect={setSelectedKey}
         onBack={handleBack}
+        onPublishClick={() => setPublishOpen(true)}
         onSave={handleSave}
         onMetaChange={editor.setMeta}
         onAddQuestion={(type) => {
-  const key = editor.addQuestion(type);
-  setSelectedKey(key);
+          const key = editor.addQuestion(type);
+          setSelectedKey(key);
         }}
         onRemoveQuestion={(key) => {
-  const idx = editor.draft?.questions.findIndex((q) => q.clientKey === key) ?? -1;
-  editor.removeQuestion(key);
-  if (selectedKey !== key) return;
+          const idx =
+            editor.draft?.questions.findIndex((q) => q.clientKey === key) ?? -1;
+          editor.removeQuestion(key);
+          if (selectedKey !== key) return;
 
-  const remaining = editor.draft?.questions.filter((q) => q.clientKey !== key) ?? [];
-  if (remaining.length === 0) {
-    setSelectedKey(null);
-  } else {
-    const nextIdx = Math.min(Math.max(idx, 0), remaining.length - 1);
-    setSelectedKey(remaining[nextIdx].clientKey);
-  }
+          const remaining =
+            editor.draft?.questions.filter((q) => q.clientKey !== key) ?? [];
+          if (remaining.length === 0) {
+            setSelectedKey(null);
+          } else {
+            const nextIdx = Math.min(Math.max(idx, 0), remaining.length - 1);
+            setSelectedKey(remaining[nextIdx].clientKey);
+          }
         }}
         onPatchQuestion={editor.patchQuestion}
         onChangeType={editor.changeQuestionType}
@@ -151,6 +156,15 @@ export const TestEditorPage: FC = () => {
         onPatchOption={editor.patchOption}
         onSetCorrectOption={editor.setCorrectOption}
       />
+      {publishOpen && editor.draft && editor.serverTest && (
+        <PublishModal
+          testId={testId}
+          testTitle={editor.draft.meta.title}
+          testDescription={editor.draft.meta.description}
+          revision={editor.serverTest.revision}
+          onClose={() => setPublishOpen(false)}
+        />
+      )}
 
       {conflictOpen && (
         <ConflictModal

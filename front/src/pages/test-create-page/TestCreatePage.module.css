@@ -1,8 +1,8 @@
 .page {
   padding: var(--space-6);
-  max-width: 880px;
+  max-width: 1080px;
+  margin: 0 auto; 
 }
-
 .header {
   margin-bottom: var(--space-6);
 }

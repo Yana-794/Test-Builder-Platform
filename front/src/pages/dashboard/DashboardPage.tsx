@@ -20,7 +20,10 @@ export const DashboardPage: FC = () => {
   const isNetwork = error instanceof ApiError && error.isNetworkError;
 
   const handleCreate = () => navigate("/app/tests/new");
-
+  
+  const handleCardClick = (filter: "all" | "draft" | "published") => {
+  navigate(`/app/tests?filter=${filter}`);
+};
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -69,7 +72,7 @@ export const DashboardPage: FC = () => {
 
       {!isLoading && !isError && data && (
         <>
-          <StatsCards isLoading={false} stats={data.stats} />
+          <StatsCards isLoading={false} stats={data.stats}  onCardClick={handleCardClick} />
           <RecentTests
             isLoading={false}
             items={data.recentTests}

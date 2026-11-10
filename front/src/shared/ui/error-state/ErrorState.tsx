@@ -2,7 +2,7 @@ import type { FC } from "react";
 import styles from "./ErrorState.module.css";
 
 interface Props {
-  onRetry: () => void;
+  onRetry?: () => void;
   message?: string;
   retryLabel?: string;
 }

@@ -17,7 +17,7 @@ return (
    
      <div className={styles.content}>
         <div className={styles.logoWrap}>
-            <Logo variant="default"/>
+            <Logo variant='light'/>
         </div>
         <div className={styles.card}>
             <div className={styles.head}>

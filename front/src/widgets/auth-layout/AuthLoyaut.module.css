@@ -1,154 +1,214 @@
 .page {
   position: relative;
-  min-height: 100vh;
-  background: var(--color-primary);
-  background-image:
-    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.16) 0%, transparent 45%),
-    radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.12) 0%, transparent 50%);
-  overflow: hidden;
-}
+  isolation: isolate;
 
-.topBar {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  z-index: 2;
-}
-
-.backLink {
-  display: inline-flex;
+  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: var(--space-2);
-  height: 36px;
-  padding: 0 var(--space-4);
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  backdrop-filter: blur(6px);
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
 
-.backLink:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.36);
-}
+  width: 100%;
+  min-height: 100svh;
+  padding: clamp(20px, 4vw, 56px);
 
+  overflow: hidden;
+
+  background: var(--color-hero-bg);
+  color: var(--color-hero-text);
+}
 .content {
   position: relative;
-  z-index: 1;
-  min-height: 100vh;
+  z-index: 2;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-7) var(--space-5);
-  gap: var(--space-6);
+
+  width: 100%;
+  max-width: 460px;
+  gap: clamp(20px, 3vw, 32px);
 }
 
 .logoWrap {
-   display: inline-flex;
-  align-items: center;
+  display: flex;
   justify-content: center;
-  padding: var(--space-3) var(--space-5);
-  background: #fff;
-  border-radius: var(--radius-md);
-  box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.18),
-    0 4px 12px rgba(0, 0, 0, 0.08);
-
+  width: 100%;
 }
 
 .card {
+  position: relative;
   width: 100%;
-  max-width: 440px;
-  padding: var(--space-7) var(--space-6);
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
+  padding: clamp(24px, 4vw, 40px);
+
+  background: var(--color-hero-surface);
+  border: 1px solid var(--color-hero-border);
+  border-radius: 24px;
+
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+
   box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.2),
-    0 8px 24px rgba(0, 0, 0, 0.12);
-  display: flex;
-  flex-direction: column;
+    0 24px 64px rgba(87, 80, 232, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  opacity: 0;
+  animation: card-in 700ms 100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .head {
-  text-align: center;
-  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: clamp(20px, 3vw, 32px);
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--color-text);
-  margin: 0 0 var(--space-2);
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 780;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--color-hero-text);
 }
 
 .subtitle {
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--color-text-muted);
   margin: 0;
+  font-size: clamp(0.9rem, 1.2vw, 1rem);
+  line-height: 1.5;
+  color: var(--color-hero-text-subtle);
 }
 
 .body {
   display: flex;
   flex-direction: column;
+  gap: clamp(16px, 2vw, 20px);
 }
 
 .footer {
-  margin-top: var(--space-6);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--color-border);
-  text-align: center;
+  margin-top: clamp(20px, 3vw, 28px);
+  padding-top: clamp(16px, 2.4vw, 24px);
+
+  border-top: 1px solid var(--color-hero-border);
+
   font-size: 14px;
-  color: var(--color-text-muted);
+  line-height: 1.5;
+  color: var(--color-hero-text-muted);
+  text-align: center;
 }
 
-.footer a {
-  color: var(--color-primary);
+.toBar {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 40px;
+  padding: 0 16px;
+
+  border-radius: 12px;
+  background: var(--color-hero-surface);
+  border: 1px solid var(--color-hero-border);
+
+  color: var(--color-hero-text-muted);
+
+  font-family: var(--font-sans);
+  font-size: 14px;
   font-weight: 500;
   text-decoration: none;
+  white-space: nowrap;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+
+  opacity: 0;
+  animation: back-in 700ms 350ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.footer a:hover {
-  text-decoration: underline;
+.backLink:hover {
+  background: var(--color-hero-surface-hover);
+  border-color: rgba(169, 154, 255, 0.45);
+  color: var(--color-hero-text);
+  transform: translateY(-2px);
 }
 
-@media (max-width: 768px) {
-  .topBar {
-    top: 16px;
-    left: 16px;
-  }
+.backLink:focus-visible {
+  outline: 2px solid var(--color-accent-soft);
+  outline-offset: 3px;
+}
 
-  .backLink span {
-    display: none;                
-  }
+.backLink svg {
+  transition: transform 0.2s ease;
+}
 
-  .backLink {
-  
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    justify-content: center;
-    border-radius: 50%;
-  }
+.backLink:hover svg {
+  transform: translateX(-4px);
+}
 
-  .content {
-    padding: var(--space-6) var(--space-4);
-    gap: var(--space-5);
+@keyframes back-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 16px;
   }
 
   .card {
-    padding: var(--space-6) var(--space-5);
-    border-radius: var(--radius-md);
+    padding: 24px 20px;
+    border-radius: 20px;
   }
 
   .title {
-    font-size: 22px;
+    font-size: clamp(1.5rem, 6vw, 2rem);
+  }
+
+  .backLink {
+    font-size: 13px;
+    height: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .backLink {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .backLink:hover {
+    transform: none;
+  }
+
+  .backLink:hover svg {
+    transform: none;
   }
 }

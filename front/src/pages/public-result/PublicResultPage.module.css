@@ -1,0 +1,122 @@
+.center { padding: var(--space-8); color: var(--color-text-muted); }
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-self: flex-start;
+  text-align: center;
+}
+
+.mascotWrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3) 0;
+}
+
+.mascot {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pop {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.title { margin: 0; font-size: 22px; font-weight: 600; }
+
+.message {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.scoreBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+}
+
+.percent {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreLine {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.progressBar {
+  height: 10px;
+  background: var(--color-border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  transition: width 0.4s;
+}
+
+.fillGood { background: var(--color-success); }
+.fillSad { background: var(--color-warning); }
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  text-align: left;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.metaLabel { color: var(--color-text-muted); }
+.metaValue { font-weight: 500; }
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+.secondary {
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.secondary:hover { background: var(--color-bg); }

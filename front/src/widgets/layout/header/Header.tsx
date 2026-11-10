@@ -1,34 +1,22 @@
 import type { FC } from "react";
 import { Link } from "react-router";
-import { LogOut, Menu, Plus, User } from "lucide-react";
+import { LogOut, Plus, User } from "lucide-react";
 import { Logo } from "../../../shared";
 import styles from "./Header.module.css";
 
 type HeaderProps = {
   userName: string;
   onCreateTest: () => void;
-  onOpenSidebar: () => void;
   onLogout: () => void;
 };
-
 
 export const Header: FC<HeaderProps> = ({
   userName,
   onCreateTest,
-  onOpenSidebar,
   onLogout,
 }) => (
   <header className={styles.header}>
     <div className={styles.left}>
-      <button
-        type="button"
-        className={styles.iconButton}
-        onClick={onOpenSidebar}
-        aria-label="Открыть меню"
-      >
-        <Menu size={20} strokeWidth={2} />
-      </button>
-
       <Link to="/app" className={styles.logo} aria-label="На главную">
         <Logo variant="default" />
       </Link>
@@ -41,12 +29,11 @@ export const Header: FC<HeaderProps> = ({
         onClick={onCreateTest}
       >
         <Plus size={16} strokeWidth={2.5} />
-        <span>Создать тест</span>
       </button>
 
       <div className={styles.user} title={userName}>
         <span className={styles.avatar} aria-hidden>
-         <User  size={20} strokeWidth={2} />
+          <User size={20} strokeWidth={2} />
         </span>
         <span className={styles.userName}>{userName}</span>
       </div>

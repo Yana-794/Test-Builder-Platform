@@ -1,7 +1,8 @@
 .page {
+  flex: 1;
+  min-height: 0;         
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 64px);
   background: var(--color-bg);
 }
 
@@ -155,4 +156,25 @@
   padding: var(--space-4);
   font-size: 13px;
   color: var(--color-text-muted);
+}
+.publishButton {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.publishButton:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.publishButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

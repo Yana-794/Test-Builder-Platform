@@ -35,6 +35,7 @@ type TestEditorProps = {
   onMoveQuestion: (key: string, direction: -1 | 1) => void;
   onAddOption: (key: string) => void;
   onRemoveOption: (key: string, oKey: string) => void;
+  onPublishClick: () => void;
   onPatchOption: (
     key: string,
     oKey: string,
@@ -55,6 +56,7 @@ export const TestEditor: FC<TestEditorProps> = (props) => {
     onSelect,
     onBack,
     onSave,
+    onPublishClick,
     onMetaChange,
     onAddQuestion,
     onRemoveQuestion,
@@ -124,6 +126,20 @@ export const TestEditor: FC<TestEditorProps> = (props) => {
           </div>
         </div>
         <div className={styles.headerActions}>
+          {status === "draft" && (
+            <button
+              className={styles.publishButton}
+              onClick={onPublishClick}
+              disabled={isDirty || isSaving}
+              title={
+                isDirty
+                  ? "Сохраните изменения перед публикацией"
+                  : "Опубликовать тест"
+              }
+            >
+              Опубликовать
+            </button>
+          )}
           <button
             className={styles.secondaryButton}
             onClick={() => setPreviewOpen(true)}
