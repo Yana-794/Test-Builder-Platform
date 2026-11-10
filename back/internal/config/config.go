@@ -15,8 +15,9 @@ type Config struct {
 	AppEnv         string // "development" | "production"
 	HTTPAddr       string // "0.0.0.0:8080"
 	FrontendOrigin string // "http://localhost" — для CORS
-	DatabaseURL    string 
-	RedisAddr	   string		
+	PublicBaseURL  string
+	DatabaseURL    string
+	RedisAddr      string
 }
 
 // Load читает env, валидирует и возвращает Config.
@@ -25,8 +26,9 @@ func Load() (Config, error) {
 		AppEnv:         getEnv("APP_ENV", "development"),
 		HTTPAddr:       getEnv("HTTP_ADDR", "0.0.0.0:8080"),
 		FrontendOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost"),
+		PublicBaseURL: getEnv("PUBLIC_BASE_URL", getEnv("FRONTEND_ORIGIN", "http://localhost")),
 		DatabaseURL:    strings.TrimSpace(os.Getenv("DATABASE_URL")),
-		RedisAddr:     getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisAddr:      getEnv("REDIS_ADDR", "localhost:6379"),
 	}
 
 	cfg.AppEnv = strings.ToLower(strings.TrimSpace(cfg.AppEnv))
@@ -46,7 +48,9 @@ func Load() (Config, error) {
 	if err := validateOrigin(cfg.FrontendOrigin); err != nil {
 		return Config{}, fmt.Errorf("FRONTEND_ORIGIN: %w", err)
 	}
-
+	if err := validateOrigin(cfg.PublicBaseURL); err != nil {
+		return Config{}, fmt.Errorf("PUBLIC_BASE_URL: %w", err)
+	}
 	dbURL, err := url.Parse(cfg.DatabaseURL)
 	if err != nil ||
 		(dbURL.Scheme != "postgres" && dbURL.Scheme != "postgresql") ||
@@ -65,9 +69,11 @@ func Load() (Config, error) {
 			)
 		}
 	case "development":
-		
 		if sslmode == "" {
-			cfg.DatabaseURL = cfg.DatabaseURL + "?sslmode=disable"
+			q := dbURL.Query()
+			q.Set("sslmode", "disable")
+			dbURL.RawQuery = q.Encode()
+			cfg.DatabaseURL = dbURL.String()
 		}
 	}
 
@@ -82,8 +88,6 @@ func MustLoad() Config {
 	}
 	return cfg
 }
-
-
 
 func getEnv(key, fallback string) string {
 	value := strings.TrimSpace(os.Getenv(key))

@@ -7,6 +7,8 @@ import (
 	"test-builder/internal/auth"
 	"test-builder/internal/dashboard"
 	"test-builder/internal/tests"
+	"test-builder/internal/publications" 
+
 
 	_ "test-builder/docs"
 
@@ -23,6 +25,7 @@ func New(
 	authHandler *auth.Handler,
 	dashboardHandler *dashboard.Handler,
 	testsHandler *tests.Handler,
+	publicationsHandler *publications.Handler,
 	rdb *redis.Client,
 	frontendOrigin string,
 	appEnv string,
@@ -31,7 +34,9 @@ func New(
 	binding.EnableDecoderDisallowUnknownFields = true
 
 	router := gin.New()
-
+	if err := router.SetTrustedProxies(nil); err != nil {
+		panic("httpserver: set trusted proxies: " + err.Error())
+	}
 	isProduction := appEnv == "production"
 
 	router.Use(
@@ -72,7 +77,7 @@ func New(
 	{
 		authRoutes.POST("/register", rateLimitByIP(rdb, authIPLimit), authHandler.Register)
 		authRoutes.POST("/login", rateLimitByIP(rdb, authIPLimit), authHandler.Login)
-		authRoutes.POST("/logout", authHandler.Logout)
+		authRoutes.POST("/logout", authHandler.RequireAuth(), authHandler.Logout)
 		authRoutes.GET("/me", authHandler.RequireAuth(), authHandler.Me)
 	}
 
@@ -88,6 +93,8 @@ func New(
 		testsRoutes.POST("", testsHandler.CreateTest)
 		testsRoutes.GET("/:testId", testsHandler.GetTest)
 		testsRoutes.PUT("/:testId/draft", testsHandler.SaveDraft)
+		testsRoutes.POST("/:testId/validate", publicationsHandler.Validate)
+		testsRoutes.POST("/:testId/publish", publicationsHandler.Publish)
 	}
 	if !isProduction {
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

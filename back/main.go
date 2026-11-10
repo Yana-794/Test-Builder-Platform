@@ -2,8 +2,7 @@
 // @version         1.0
 // @description     API для платформы создания тестов
 // @host            localhost
-// @BasePath        /api
-
+// @BasePath		 /
 // @securityDefinitions.apikey  CookieAuth
 // @in                          header
 // @name                        Cookie
@@ -33,6 +32,7 @@ import (
 	"test-builder/internal/dashboard"
 	"test-builder/internal/database"
 	"test-builder/internal/httpserver"
+	"test-builder/internal/publications"
 	"test-builder/internal/tests"
 )
 
@@ -56,10 +56,12 @@ func run() error {
 	defer pool.Close()
 	log.Printf("connected to PostgreSQL")
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     cfg.RedisAddr,
-		DB:       0,
+		Addr: cfg.RedisAddr,
+		DB:   0,
 	})
-	if err := rdb.Ping(context.Background()).Err(); err != nil {
+	pingCtx, pingCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer pingCancel()
+	if err := rdb.Ping(pingCtx).Err(); err != nil {
 		return fmt.Errorf("connect to redis: %w", err)
 	}
 	defer rdb.Close()
@@ -79,8 +81,11 @@ func run() error {
 	testsRepo := tests.NewRepository(pool)
 	testsSvc := tests.NewService(testsRepo)
 	testsHandler := tests.NewHandler(testsSvc)
+	publicationsRepo := publications.NewRepository(pool)
+	publicationsService := publications.NewService(publicationsRepo, pool, cfg.PublicBaseURL)
+	publicationsHandler := publications.NewHandler(publicationsService)
 	// HTTP-роутер
-	router := httpserver.New(authHandler, dashboardHandler, testsHandler, rdb, cfg.FrontendOrigin, cfg.AppEnv)
+	router := httpserver.New(authHandler, dashboardHandler, testsHandler, publicationsHandler, rdb, cfg.FrontendOrigin, cfg.AppEnv)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,

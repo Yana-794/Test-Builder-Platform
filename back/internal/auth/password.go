@@ -48,11 +48,15 @@ func verifyPassword(password, encoded string) bool {
 
 	if len(parts) != 5 ||
 		parts[0] != "argon2id" ||
-		parts[1] != "v=19" ||
-		parts[2] != "m=19456,t=2,p=1" {
+		parts[1] != "v=19" {
 		return false
 	}
-
+	var memory uint32
+	var iterations uint32
+	var threads uint8
+	if _, err := fmt.Sscanf(parts[2], "m=%d,t=%d,p=%d", &memory, &iterations, &threads); err != nil{
+		return false
+	}
 	encoding := base64.RawURLEncoding
 
 	salt, err := encoding.DecodeString(parts[3])
@@ -68,9 +72,9 @@ func verifyPassword(password, encoded string) bool {
 	actualHash := argon2.IDKey(
 		[]byte(password),
 		salt,
-		argonTime,
-		argonMemory,
-		argonThreads,
+		iterations,
+		memory,
+		threads,
 		argonKeyLength,
 	)
 

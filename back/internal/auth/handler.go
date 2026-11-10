@@ -42,19 +42,6 @@ func writeError(c *gin.Context, status int, code, message string) {
 	})
 }
 
-// func bindError(c *gin.Context, err error) {
-// 	var maxBytesErr *http.MaxBytesError
-// 	if errors.As(err, &maxBytesErr) {
-// 		writeError(c, http.StatusRequestEntityTooLarge,
-// 			"REQUEST_TOO_LARGE", "Request body is too large")
-// 		return
-// 	}
-
-//		// writeError(c, http.StatusBadRequest,
-//		// 	"INVALID_REQUEST", "Invalid JSON or unexpected fields")
-//		writeError(c, http.StatusBadRequest,
-//			"INVALID_REQUEST", err.Error())
-//	}
 func bindError(c *gin.Context, err error) {
 	var maxBytesErr *http.MaxBytesError
 	if errors.As(err, &maxBytesErr) {
@@ -62,10 +49,9 @@ func bindError(c *gin.Context, err error) {
 			"REQUEST_TOO_LARGE", "Request body is too large")
 		return
 	}
-
-	// ВРЕМЕННО 
+	slog.WarnContext(c.Request.Context(), "bind error", "error", err)
 	writeError(c, http.StatusBadRequest,
-		"INVALID_REQUEST", err.Error())
+		"INVALID_REQUEST", "Invalid JSON or unexpected fields")
 }
 
 // Register godoc
@@ -117,8 +103,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, RegisterResponse{User: toUserResponse(user),
-	})
+	c.JSON(http.StatusCreated, RegisterResponse{User: toUserResponse(user)})
 }
 
 // Login godoc
@@ -242,7 +227,11 @@ func (h *Handler) RequireAuth() gin.HandlerFunc {
 func (h *Handler) Me(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 
-	session := c.MustGet(sessionContextKey).(AuthenticatedSession)
+	session, ok := SessionFromCtx(c)
+	if !ok {
+		writeError(c, http.StatusUnauthorized, "UNAUTHENTICATED", "Please sign in")
+		return
+	}
 
 	c.JSON(http.StatusOK, AuthResponse{
 		User:      toUserResponse(session.User),
