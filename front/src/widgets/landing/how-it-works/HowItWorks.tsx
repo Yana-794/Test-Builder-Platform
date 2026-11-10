@@ -1,62 +1,104 @@
-import { PencilLine, Link2, BarChart3 } from 'lucide-react'
-import styles from './HowItWorks.module.css'
+import { Fragment, useEffect, useRef } from "react";
+import { PencilLine, Link2, BarChart3 } from "lucide-react";
+import styles from "./HowItWorks.module.css";
+import { SectionWordmark } from "../../../shared/ui/section-wordmark/SectionWordmark";
 
 const STEPS = [
   {
-    number: '01',
+    number: "01",
     icon: PencilLine,
-    title: 'Создайте тест',
-    text: 'Вопросы и баллы',
+    title: "Создайте тест",
+    text: "Вопросы и баллы в простом редакторе",
   },
   {
-    number: '02',
+    number: "02",
     icon: Link2,
-    title: 'Отправьте ссылку',
-    text: 'Без аккаунта ученика',
+    title: "Отправьте ссылку",
+    text: "Ученики проходят без регистрации",
   },
   {
-    number: '03',
+    number: "03",
     icon: BarChart3,
-    title: 'Изучите результат',
-    text: 'Баллы и статистика',
+    title: "Изучите результат",
+    text: "Баллы и статистика по каждому вопросу",
   },
-]
+];
 
 export function HowItWorks() {
+  const pathRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = pathRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add(styles.pathVisible);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section id="how-it-works" className={styles.section}>
+       <SectionWordmark
+              text="TESTBUILDER"
+              lines={1}
+              intensity={0.025}
+              size="26vw"
+            />
       <div className={styles.inner}>
         <div className={styles.head}>
+          <div className={styles.headLeft}>
+            <span className={styles.eyebrow}>
+              <span className={styles.eyebrowDot} aria-hidden />
+              Как это работает
+            </span>
+            <p className={styles.subtitle}>
+              От создания теста до готовых результатов — весь путь в одном окне
+            </p>
+          </div>
+
           <h2 className={styles.title}>
-            От идеи до результата{' '}
+            От идеи до результата{" "}
             <span className={styles.titleAccent}>за три шага</span>
           </h2>
-          <p className={styles.subtitle}>
-            От создания теста до готовых результатов
-          </p>
         </div>
 
-        <div className={styles.path}>
-          {STEPS.map((step) => {
-            const Icon = step.icon
+        <div ref={pathRef} className={styles.path}>
+          {STEPS.map((step, i) => {
+            const Icon = step.icon;
             return (
-              <div key={step.number} className={styles.step}>
-                <span className={styles.markerNumber}>{step.number}</span>
+              <Fragment key={step.number}>
+                <article className={styles.step}>
+                  <span className={styles.stepNumber}>{step.number}</span>
 
-                <div className={styles.stepBody}>
                   <div className={styles.stepIcon}>
-                    <Icon size={18} strokeWidth={2} />
+                    <Icon size={20} strokeWidth={2} />
                   </div>
+
                   <h3 className={styles.stepTitle}>{step.title}</h3>
                   <p className={styles.stepText}>{step.text}</p>
-                </div>
-             
-              </div>
-             
-            )
+                </article>
+
+                {i < STEPS.length - 1 && (
+                  <div className={styles.connector} aria-hidden>
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                )}
+              </Fragment>
+            );
           })}
         </div>
       </div>
     </section>
-  )
+  );
 }
