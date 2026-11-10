@@ -145,3 +145,27 @@ func toQuestionDTO(q Question) QuestionDTO {
 		CorrectTextAnswer: q.CorrectTextAnswer,
 	}
 }
+
+type TestListResponse struct {
+	Tests  []TestListItemDTO `json:"tests"`
+	Filter string            `json:"filter"`
+	Total  int               `json:"total"`
+}
+
+type TestListItemDTO struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Status    string `json:"status"`
+	Revision  int    `json:"revision"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+func toTestListItemDTO(t Test) TestListItemDTO {
+	return TestListItemDTO{
+		ID:        t.ID.String(),
+		Title:     t.Title,
+		Status:    string(t.Status),
+		Revision:  t.Revision,
+		UpdatedAt: t.UpdatedAt.UTC().Format(time.RFC3339),
+	}
+}

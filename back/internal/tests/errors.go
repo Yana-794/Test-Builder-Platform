@@ -14,6 +14,8 @@ var (
 
 	// передан id вопроса/варианта, который не принадлежит этому тесту/вопросу.
 	ErrInvalidReference = errors.New("invalid reference")
+	ErrInvalidFilter = errors.New("invalid filter")
+	
 )
 type ValidationError struct {
 	Details []FieldDetail

@@ -15,6 +15,7 @@ type testsService interface {
 	CreateTest(ctx context.Context, ownerID uuid.UUID, req CreateTestRequest) (Test, error)
 	GetTestForEditor(ctx context.Context, ownerID, testID uuid.UUID) (Test, []Question, error)
 	SaveDraft(ctx context.Context, ownerID, testID uuid.UUID, req SaveDraftRequest) (Test, []Question, error)
+	ListTests(ctx context.Context, ownerID uuid.UUID, filter string) ([]Test, error)
 }
 type Handler struct {
 	service testsService}
@@ -196,4 +197,43 @@ func (h *Handler) SaveDraft(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, TestEditorResponse{Test: toEditorTestDTO(test, questions)})
+}
+
+// ListTests godoc
+// @Summary      Список тестов пользователя
+// @Tags         tests
+// @Produce      json
+// @Param        filter query string false "all | draft | published" default(all)
+// @Success      200  {object}  TestListResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      401  {object}  ErrorResponse
+// @Router       /tests [get]
+// @Security     CookieAuth
+func (h *Handler) ListTests(c *gin.Context) {
+	c.Header("Cache-Control", "no-store")
+
+	userID, ok := auth.UserIDFromCtx(c)
+	if !ok {
+		writeError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Please sign in", nil)
+		return
+	}
+
+	filter := c.DefaultQuery("filter", "all")
+	tests, err := h.service.ListTests(c.Request.Context(), userID, filter)
+	if err != nil {
+		if errors.Is(err, ErrInvalidFilter) {
+			writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid filter", nil)
+			return
+		}
+		slog.ErrorContext(c.Request.Context(), "list tests failed", "error", err)
+		writeError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "Something went wrong", nil)
+		return
+	}
+
+	items := make([]TestListItemDTO, len(tests))
+	for i, t := range tests {
+		items[i] = toTestListItemDTO(t)
+	}
+
+	c.JSON(http.StatusOK, TestListResponse{Tests: items, Filter: filter, Total: len(items)})
 }

@@ -217,3 +217,31 @@ func (r *Repository) CreatePublication(
 
 	return public, nil
 }
+func (r *Repository) GetPublicationByTest(
+	ctx context.Context,
+	ownerID, testID uuid.UUID,
+) (Publication, error) {
+	var pub Publication
+	var raw []byte
+	err := r.pool.QueryRow(ctx, `
+		SELECT p.id, p.test_id, p.version, p.public_token, p.content, p.created_at
+		FROM test_publications p
+		JOIN tests t ON t.publication_version_id = p.id
+		WHERE t.id = $1 AND t.owner_id = $2
+	`, testID, ownerID).Scan(
+		&pub.ID,
+		&pub.TestID,
+		&pub.Version,
+		&pub.PublicToken,
+		&raw,
+		&pub.CreatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Publication{}, ErrTestNotFound
+	}
+	if err != nil {
+		return Publication{}, fmt.Errorf("get publication: %w", err)
+	}
+	_ = raw
+	return pub, nil
+}

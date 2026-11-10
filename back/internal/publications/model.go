@@ -41,22 +41,42 @@ type SnapshotQuestion struct {
  }
 
 type PublicTest struct {
-	Title         string
-	Description   string
-	QuestionCount int
-	Questions     []PublicQuestion
+	Title         string           `json:"title"`
+	Description   string           `json:"description"`
+	QuestionCount int              `json:"questionCount"`
+	Questions     []PublicQuestion `json:"questions"`
 }
 
 type PublicQuestion struct {
-	ID       uuid.UUID
-	Prompt   string
-	Type     string
-	Position int
-	Options  []PublicOption 
+	ID       uuid.UUID      `json:"id"`
+	Prompt   string         `json:"prompt"`
+	Type     string         `json:"type"`
+	Position int            `json:"position"`
+	Options  []PublicOption `json:"options,omitempty"` 
 }
 
 //только для одиночного выбора
 type PublicOption struct {
-	ID   uuid.UUID
-	Text string
+	ID   uuid.UUID `json:"id"`
+	Text string    `json:"text"`
+}
+
+func ToPublicTest(s SnapshotContent) PublicTest {
+	qs := make([]PublicQuestion, len(s.Questions))
+	for i, q := range s.Questions {
+		pq := PublicQuestion{ID: q.ID, Prompt: q.Prompt, Type: q.Type, Position: q.Position}
+		if q.Type == "single_choice" {
+			pq.Options = make([]PublicOption, len(q.Options))
+			for j, o := range q.Options {
+				pq.Options[j] = PublicOption{ID: o.ID, Text: o.Text}
+			}
+		}
+		qs[i] = pq
+	}
+	return PublicTest{
+		Title:         s.Title,
+		Description:   s.Description,
+		QuestionCount: len(s.Questions),
+		Questions:     qs,
+	}
 }

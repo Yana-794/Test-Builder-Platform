@@ -14,6 +14,7 @@ import (
 type publicationsService interface {
 	Validate(ctx context.Context, ownerID, testID uuid.UUID) (ValidateResponse, error)
 	Publish(ctx context.Context, ownerID, testID uuid.UUID, expectedRevision int) (PublishResponse, error)
+	GetPublication(ctx context.Context, ownerID, testID uuid.UUID) (PublishResponseData, error) 
 }
 
 type Handler struct {
@@ -141,4 +142,34 @@ func (h *Handler) Publish(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, pub)
+}
+// GetPublication godoc
+// @Summary      Актуальная публикация теста
+// @Tags         publications
+// @Produce      json
+// @Param        testId path string true "UUID теста"
+// @Success      200  {object}  PublishResponse
+// @Failure      404  {object}  ErrorResponse
+// @Router       /tests/{testId}/publication [get]
+// @Security     CookieAuth
+func (h *Handler) GetPublication(c *gin.Context) {
+	c.Header("Cache-Control", "no-store")
+
+	userID, testID, ok := requireAuthAndTestID(c)
+	if !ok {
+		return
+	}
+
+	pub, err := h.service.GetPublication(c.Request.Context(), userID, testID)
+	if err != nil {
+		if errors.Is(err, ErrTestNotFound) {
+			writeError(c, http.StatusNotFound, "NOT_FOUND", "Publication not found")
+			return
+		}
+		slog.ErrorContext(c.Request.Context(), "get publication failed", "error", err)
+		writeError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "Something went wrong")
+		return
+	}
+
+	c.JSON(http.StatusOK, PublishResponse{Publication: pub})
 }

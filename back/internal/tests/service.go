@@ -9,6 +9,11 @@ import (
 
 	"github.com/google/uuid"
 )
+var validFilters = map[string][]string{
+	"all":       {"draft", "published"}, 
+	"draft":     {"draft"},
+	"published": {"published"},
+} 
 
 type Service struct {
 	repo *Repository
@@ -249,4 +254,15 @@ func normalizeOptionalString(s *string) *string {
 		return nil
 	}
 	return &v
+}
+
+func (s *Service) ListTests(ctx context.Context, ownerID uuid.UUID, filter string) ([]Test, error) {
+	if filter == "" {
+		filter = "all"
+	}
+	statuses, ok := validFilters[filter]
+	if !ok {
+		return nil, ErrInvalidFilter
+	}
+	return s.repo.ListTests(ctx, ownerID, statuses)
 }

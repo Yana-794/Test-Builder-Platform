@@ -282,3 +282,19 @@ func (s *Service) PublicURL(token string) string {
 	}
 	return publicURL
 }
+func (s *Service) GetPublication(
+	ctx context.Context,
+	ownerID, testID uuid.UUID,
+) (PublishResponseData, error) {
+	pub, err := s.repo.GetPublicationByTest(ctx, ownerID, testID)
+	if err != nil {
+		return PublishResponseData{}, err
+	}
+	return PublishResponseData{
+		ID:          pub.ID.String(),
+		Version:     pub.Version,
+		PublicToken: pub.PublicToken,
+		PublicURL:   s.PublicURL(pub.PublicToken),
+		PublishedAt: pub.CreatedAt.Format(time.RFC3339),
+	}, nil
+}

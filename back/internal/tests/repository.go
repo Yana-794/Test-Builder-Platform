@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// общий интерфейс 
+// общий интерфейс
 type querier interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
@@ -49,7 +49,7 @@ func (r *Repository) CreateTest(
 	return t, nil
 }
 
-// GetTest 
+// GetTest
 
 func (r *Repository) GetTest(ctx context.Context, ownerID, testID uuid.UUID) (Test, error) {
 	return r.getTest(ctx, r.pool, ownerID, testID)
@@ -184,7 +184,6 @@ func (r *Repository) SaveDraft(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	
 	var currentRevision int
 	var currentStatus string
 	err = tx.QueryRow(ctx, `
@@ -298,7 +297,7 @@ func upsertQuestion(
 	return id, nil
 }
 
-//  двухпроходный: сначала все is_correct=false (обход частичного UNIQUE INDEX, который не DEFERRABLE), затем один -> true.
+// двухпроходный: сначала все is_correct=false (обход частичного UNIQUE INDEX, который не DEFERRABLE), затем один -> true.
 func upsertOptions(
 	ctx context.Context,
 	tx pgx.Tx,
@@ -376,4 +375,42 @@ func upsertOptions(
 		}
 	}
 	return nil
+}
+
+func (r *Repository) ListTests(ctx context.Context, ownerID uuid.UUID, statuses []string) ([]Test, error) {
+	const q = `
+		SELECT id, owner_id, title, description, subject,
+		       status, revision, created_at, updated_at
+		FROM tests
+		WHERE owner_id = $1 AND status = ANY($2)
+		ORDER BY updated_at DESC
+	`
+	rows, err := r.pool.Query(ctx, q, ownerID, statuses)
+	if err != nil {
+		return nil, fmt.Errorf("list tests: %w", err)
+	}
+	defer rows.Close()
+
+	tests := make([]Test, 0)
+	for rows.Next() {
+		var t Test
+		if err := rows.Scan(
+			&t.ID,
+			&t.OwnerID,
+			&t.Title,
+			&t.Description,
+			&t.Subject,
+			&t.Status,
+			&t.Revision,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan test: %w", err)
+		}
+		tests = append(tests, t)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows: %w", err)
+	}
+	return tests, nil
 }

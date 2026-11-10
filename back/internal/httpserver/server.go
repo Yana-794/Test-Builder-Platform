@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"time"
 
+	"test-builder/internal/attempts"
 	"test-builder/internal/auth"
 	"test-builder/internal/dashboard"
+	"test-builder/internal/publications"
 	"test-builder/internal/tests"
-	"test-builder/internal/publications" 
-
 
 	_ "test-builder/docs"
 
@@ -26,11 +26,12 @@ func New(
 	dashboardHandler *dashboard.Handler,
 	testsHandler *tests.Handler,
 	publicationsHandler *publications.Handler,
+	attemptsHandler *attempts.Handler,
 	rdb *redis.Client,
 	frontendOrigin string,
 	appEnv string,
 ) *gin.Engine {
-	
+
 	binding.EnableDecoderDisallowUnknownFields = true
 
 	router := gin.New()
@@ -50,11 +51,11 @@ func New(
 			AllowCredentials: true,
 			MaxAge:           12 * time.Hour,
 		}),
-	
+
 		maxBodySize(1<<20),
 	)
 
-	// 404 / 405 в JSON, чтобы фронт не получал plain-text 
+	// 404 / 405 в JSON, чтобы фронт не получал plain-text
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
@@ -86,16 +87,43 @@ func New(
 	{
 		dashboardRoutes.GET("/overview", dashboardHandler.GetOverview)
 	}
-	
+
 	testsRoutes := router.Group("/tests")
 	testsRoutes.Use(authHandler.RequireAuth())
 	{
 		testsRoutes.POST("", testsHandler.CreateTest)
+		testsRoutes.GET("", testsHandler.ListTests)
 		testsRoutes.GET("/:testId", testsHandler.GetTest)
 		testsRoutes.PUT("/:testId/draft", testsHandler.SaveDraft)
 		testsRoutes.POST("/:testId/validate", publicationsHandler.Validate)
 		testsRoutes.POST("/:testId/publish", publicationsHandler.Publish)
+		testsRoutes.GET("/:testId/publication", publicationsHandler.GetPublication)
 	}
+
+	publicTests := router.Group("/public/tests")
+	publicTests.Use(noStore())
+	{
+
+		publicTests.GET("/:token",
+			rateLimitByIP(rdb, redis_rate.PerMinute(60)),
+			attemptsHandler.GetPublicTest,
+		)
+		publicTests.POST("/:token/attempts",
+			rateLimitByIP(rdb, redis_rate.PerMinute(60)),
+			rateLimitByParam(rdb, redis_rate.PerMinute(500), "token"),
+			attemptsHandler.CreateAttempt,
+		)
+	}
+
+	publicAttempts := router.Group("/public/attempts")
+	publicAttempts.Use(noStore(), attemptsHandler.RequireAttemptCookie())
+	{
+		publicAttempts.GET("/:attemptId", attemptsHandler.GetState)
+		publicAttempts.PUT("/:attemptId/answers", attemptsHandler.SaveAnswers)
+		publicAttempts.POST("/:attemptId/submit", attemptsHandler.Submit)
+		publicAttempts.GET("/:attemptId/result", attemptsHandler.GetResult)
+	}
+
 	if !isProduction {
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
