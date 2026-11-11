@@ -20,14 +20,15 @@ export const DashboardPage: FC = () => {
   const isNetwork = error instanceof ApiError && error.isNetworkError;
 
   const handleCreate = () => navigate("/app/tests/new");
-  
+
   const handleCardClick = (filter: "all" | "draft" | "published") => {
-  navigate(`/app/tests?filter=${filter}`);
-};
+    navigate(`/app/tests?filter=${filter}`);
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div>
+        <div className={styles.headerContent}>
           <h1 className={styles.title}>Добро пожаловать, {userName}!</h1>
           <p className={styles.subtitle}>
             Здесь вы можете управлять тестами и отслеживать результаты их
@@ -72,7 +73,11 @@ export const DashboardPage: FC = () => {
 
       {!isLoading && !isError && data && (
         <>
-          <StatsCards isLoading={false} stats={data.stats}  onCardClick={handleCardClick} />
+          <StatsCards
+            isLoading={false}
+            stats={data.stats}
+            onCardClick={handleCardClick}
+          />
           <RecentTests
             isLoading={false}
             items={data.recentTests}

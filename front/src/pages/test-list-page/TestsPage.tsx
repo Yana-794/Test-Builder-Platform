@@ -1,12 +1,12 @@
-import { useNavigate } from "react-router";
-import emptyImage from "../../assets/empty.png";
 import type { FC } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import { AlertCircle, ChevronRight, FileText, Plus } from "lucide-react";
+import emptyImage from "../../assets/empty.png";
 import type { TestFilter } from "../../entities/test/model/types";
-import styles from "./TestsPage.module.css";
 import { useTests } from "../../features/tests/model/hooks/useTests";
-import { Plus } from "lucide-react";
 import { EmptyState } from "../../shared/ui/empty-state/Empty";
+import { Skeleton } from "../../shared/ui/skeleton/Skeleton";
+import styles from "./TestsPage.module.css";
 
 const FILTERS: { value: TestFilter; label: string }[] = [
   { value: "all", label: "Все" },
@@ -31,35 +31,66 @@ export const TestsPage: FC = () => {
 
   const navigate = useNavigate();
   const createTest = () => navigate("/app/tests/new");
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Мои тесты</h1>
+        <div className={styles.headerContent}>
+          <h1 className={styles.title}>Мои тесты</h1>
+          <p className={styles.subtitle}>
+            Управляйте тестами, черновиками и публикациями в одном месте.
+          </p>
+        </div>
         <Link to="/app/tests/new" className={styles.createButton}>
-          + Создать тест
+          <Plus size={16} strokeWidth={2.5} />
+          Создать тест
         </Link>
       </header>
 
-      <div className={styles.tabs}>
-        {FILTERS.map((f) => (
-          <button
-            key={f.value}
-            className={[styles.tab, filter === f.value ? styles.tabActive : ""]
-              .join(" ")
-              .trim()}
-            onClick={() => setParams({ filter: f.value })}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className={styles.tabs} role="tablist" aria-label="Фильтр тестов">
+        {FILTERS.map((f) => {
+          const active = filter === f.value;
+          return (
+            <button
+              key={f.value}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              className={`${styles.tab} ${active ? styles.tabActive : ""}`}
+              onClick={() => setParams({ filter: f.value })}
+            >
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
-      {isLoading && <div className={styles.loading}>Загрузка...</div>}
+      {isLoading && (
+        <ul className={styles.list} aria-busy="true" aria-live="polite">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <li key={i}>
+              <Skeleton height={68} radius={14} />
+            </li>
+          ))}
+        </ul>
+      )}
 
       {isError && (
-        <div className={styles.error}>
-          Не удалось загрузить тесты.{" "}
-          <button onClick={() => refetch()} className={styles.retryButton}>
+        <div className={styles.error} role="alert">
+          <span className={styles.errorIcon} aria-hidden="true">
+            <AlertCircle size={22} strokeWidth={2.2} />
+          </span>
+          <div className={styles.errorBody}>
+            <p className={styles.errorTitle}>Не удалось загрузить тесты</p>
+            <p className={styles.errorText}>
+              Проверьте соединение и попробуйте ещё раз.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className={styles.retryButton}
+          >
             Повторить
           </button>
         </div>
@@ -88,6 +119,10 @@ export const TestsPage: FC = () => {
           {data.tests.map((t) => (
             <li key={t.id}>
               <Link to={`/app/tests/${t.id}`} className={styles.item}>
+                <span className={styles.itemIcon} aria-hidden="true">
+                  <FileText size={18} strokeWidth={2.2} />
+                </span>
+
                 <div className={styles.itemMain}>
                   <span className={styles.itemTitle}>
                     {t.title || "(без названия)"}
@@ -99,10 +134,19 @@ export const TestsPage: FC = () => {
                       {STATUS_LABEL[t.status] ?? t.status}
                     </span>
                     <span className={styles.revision}>v{t.revision}</span>
-                    <span>{new Date(t.updatedAt).toLocaleString("ru-RU")}</span>
+                    <span className={styles.dot} aria-hidden="true" />
+                    <span className={styles.date}>
+                      {new Date(t.updatedAt).toLocaleString("ru-RU")}
+                    </span>
                   </span>
                 </div>
-                <span className={styles.arrow}>→</span>
+
+                <ChevronRight
+                  size={18}
+                  strokeWidth={2.2}
+                  className={styles.chevron}
+                  aria-hidden="true"
+                />
               </Link>
             </li>
           ))}

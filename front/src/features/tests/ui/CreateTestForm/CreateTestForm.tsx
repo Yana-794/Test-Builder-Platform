@@ -1,6 +1,15 @@
 import type { FC } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import {
+  AlertCircle,
+  AlignLeft,
+  BookOpen,
+  Hash,
+  Loader2,
+  Plus,
+  X,
+} from "lucide-react";
 import { useCreateTest } from "../../model/hooks/useCreateTest";
 import { ApiError } from "../../../../shared/api/http";
 import styles from "./CreateTestForm.module.css";
@@ -52,64 +61,99 @@ export const CreateTestForm: FC = () => {
 
   const isSubmitting = mutation.isPending;
 
+  const titleNear = title.length >= TITLE_MAX * 0.9;
+  const descNear = description.length >= DESCRIPTION_MAX * 0.9;
+
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="title">
-          Название <span className={styles.required}>*</span>
-        </label>
-        <input
-          id="title"
-          type="text"
-          className={styles.input}
-          value={title}
-          maxLength={TITLE_MAX}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Например, Основы JavaScript"
-          disabled={isSubmitting}
-          autoFocus
-        />
-        <span className={styles.counter}>
-          {title.length} / {TITLE_MAX}
-        </span>
-      </div>
+      <div className={styles.formBody}>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="title">
+            <span className={styles.labelText}>
+              <Hash size={13} strokeWidth={2.4} aria-hidden="true" />
+              Название
+              <span className={styles.required} aria-hidden="true">
+                *
+              </span>
+            </span>
+            <span className={styles.labelHint}>Обязательно для создания</span>
+          </label>
+          <input
+            id="title"
+            type="text"
+            className={styles.input}
+            value={title}
+            maxLength={TITLE_MAX}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Например, Основы JavaScript"
+            disabled={isSubmitting}
+            autoFocus
+            aria-required="true"
+            aria-invalid={!!fieldError}
+            aria-describedby="title-counter"
+          />
+          <span
+            id="title-counter"
+            className={`${styles.counter} ${titleNear ? styles.counterNear : ""}`}
+          >
+            {title.length} / {TITLE_MAX}
+          </span>
+        </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="description">
-          Описание
-        </label>
-        <textarea
-          id="description"
-          className={styles.textarea}
-          value={description}
-          maxLength={DESCRIPTION_MAX}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Добавьте описание теста..."
-          rows={4}
-          disabled={isSubmitting}
-        />
-        <span className={styles.counter}>
-          {description.length} / {DESCRIPTION_MAX}
-        </span>
-      </div>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="description">
+            <span className={styles.labelText}>
+              <AlignLeft size={13} strokeWidth={2.4} aria-hidden="true" />
+              Описание
+            </span>
+            <span className={styles.labelHint}>Необязательно</span>
+          </label>
+          <textarea
+            id="description"
+            className={styles.textarea}
+            value={description}
+            maxLength={DESCRIPTION_MAX}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Добавьте описание теста..."
+            rows={4}
+            disabled={isSubmitting}
+            aria-describedby="description-counter"
+          />
+          <span
+            id="description-counter"
+            className={`${styles.counter} ${descNear ? styles.counterNear : ""}`}
+          >
+            {description.length} / {DESCRIPTION_MAX}
+          </span>
+        </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="subject">
-          Предмет
-        </label>
-        <input
-          id="subject"
-          type="text"
-          className={styles.input}
-          value={subject}
-          maxLength={SUBJECT_MAX}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder="Например, Английский язык"
-          disabled={isSubmitting}
-        />
-      </div>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="subject">
+            <span className={styles.labelText}>
+              <BookOpen size={13} strokeWidth={2.4} aria-hidden="true" />
+              Предмет
+            </span>
+            <span className={styles.labelHint}>Необязательно</span>
+          </label>
+          <input
+            id="subject"
+            type="text"
+            className={styles.input}
+            value={subject}
+            maxLength={SUBJECT_MAX}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Например, Английский язык"
+            disabled={isSubmitting}
+          />
+        </div>
 
-      {fieldError && <div className={styles.error}>{fieldError}</div>}
+        {fieldError && (
+          <div className={styles.error} role="alert" aria-live="assertive">
+            <AlertCircle size={18} strokeWidth={2.2} aria-hidden="true" />
+            <span>{fieldError}</span>
+          </div>
+        )}
+      </div>
 
       <div className={styles.actions}>
         <button
@@ -118,14 +162,20 @@ export const CreateTestForm: FC = () => {
           onClick={() => navigate("/app/tests")}
           disabled={isSubmitting}
         >
+          <X size={15} strokeWidth={2.2} />
           Отмена
         </button>
         <button
           type="submit"
           className={styles.submitButton}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !title.trim()}
         >
-          {isSubmitting ? "Создание..." : "Создать тест"}
+          {isSubmitting ? (
+            <Loader2 size={15} strokeWidth={2.4} className={styles.spin} />
+          ) : (
+            <Plus size={15} strokeWidth={2.4} />
+          )}
+          <span>{isSubmitting ? "Создание..." : "Создать тест"}</span>
         </button>
       </div>
     </form>
