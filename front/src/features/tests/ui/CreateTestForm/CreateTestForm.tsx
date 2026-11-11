@@ -85,7 +85,7 @@ export const CreateTestForm: FC = () => {
             value={title}
             maxLength={TITLE_MAX}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Например, Основы JavaScript"
+            placeholder="Например, Основы Go"
             disabled={isSubmitting}
             autoFocus
             aria-required="true"
@@ -142,7 +142,7 @@ export const CreateTestForm: FC = () => {
             value={subject}
             maxLength={SUBJECT_MAX}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder="Например, Английский язык"
+            placeholder="Например, Программирование"
             disabled={isSubmitting}
           />
         </div>
