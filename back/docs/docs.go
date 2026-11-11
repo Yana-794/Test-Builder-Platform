@@ -15,6 +15,50 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/analytics/recent": {
+            "get": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Последние попытки учеников",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "1-100, default 20",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/analytics.RecentResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/analytics.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/analytics.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Проверяет email и пароль, устанавливает cookie-сессию",
@@ -232,7 +276,305 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/attempts/{attemptId}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Состояние попытки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID попытки",
+                        "name": "attemptId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.AttemptStateResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/attempts/{attemptId}/answers": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Сохранить ответы",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID попытки",
+                        "name": "attemptId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Полный набор ответов",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/attempts.SaveAnswersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/attempts/{attemptId}/result": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Результат попытки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID попытки",
+                        "name": "attemptId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.AttemptResultResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/attempts/{attemptId}/submit": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Завершить попытку",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID попытки",
+                        "name": "attemptId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.AttemptResultResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/tests/{token}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Публичный тест по токену",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Публичный токен",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/publications.PublicTest"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/tests/{token}/attempts": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Создать попытку прохождения",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Публичный токен",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Имя ученика",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/attempts.CreateAttemptRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.CreateAttemptResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/attempts.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tests": {
+            "get": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tests"
+                ],
+                "summary": "Список тестов пользователя",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "all",
+                        "description": "all | draft | published",
+                        "name": "filter",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tests.TestListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/tests.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -422,9 +764,357 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tests/{testId}/publication": {
+            "get": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "publications"
+                ],
+                "summary": "Актуальная публикация теста",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID теста",
+                        "name": "testId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publications.PublishResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tests/{testId}/publish": {
+            "post": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    },
+                    {
+                        "CsrfToken": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "publications"
+                ],
+                "summary": "Публикация теста",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID теста",
+                        "name": "testId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "expectedRevision",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publications.PublishRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/publications.PublishResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tests/{testId}/validate": {
+            "post": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    },
+                    {
+                        "CsrfToken": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "publications"
+                ],
+                "summary": "Проверка готовности теста к публикации",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID теста",
+                        "name": "testId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ValidateResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/publications.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "analytics.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/publications.ErrorBody"
+                }
+            }
+        },
+        "analytics.RecentAttemptDTO": {
+            "type": "object",
+            "properties": {
+                "attemptId": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "durationSeconds": {
+                    "type": "integer"
+                },
+                "maxScore": {
+                    "type": "number"
+                },
+                "percent": {
+                    "type": "number"
+                },
+                "score": {
+                    "type": "number"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "studentName": {
+                    "type": "string"
+                },
+                "testId": {
+                    "type": "string"
+                },
+                "testTitle": {
+                    "type": "string"
+                }
+            }
+        },
+        "analytics.RecentResponse": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analytics.RecentAttemptDTO"
+                    }
+                }
+            }
+        },
+        "attempts.AnswerDTO": {
+            "type": "object",
+            "properties": {
+                "answerText": {
+                    "type": "string"
+                },
+                "questionId": {
+                    "type": "string"
+                },
+                "selectedOptionId": {
+                    "type": "string"
+                }
+            }
+        },
+        "attempts.AttemptResultDTO": {
+            "type": "object",
+            "properties": {
+                "completedAt": {
+                    "type": "string"
+                },
+                "durationSeconds": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "maxScore": {
+                    "type": "number"
+                },
+                "percentage": {
+                    "type": "number"
+                },
+                "score": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "attempts.AttemptResultResponse": {
+            "type": "object",
+            "properties": {
+                "attempt": {
+                    "$ref": "#/definitions/attempts.AttemptResultDTO"
+                }
+            }
+        },
+        "attempts.AttemptShortDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "attempts.AttemptStateResponse": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/attempts.AnswerDTO"
+                    }
+                },
+                "attempt": {
+                    "$ref": "#/definitions/attempts.AttemptShortDTO"
+                },
+                "test": {
+                    "$ref": "#/definitions/publications.PublicTest"
+                }
+            }
+        },
+        "attempts.CreateAttemptRequest": {
+            "type": "object",
+            "properties": {
+                "studentName": {
+                    "type": "string"
+                }
+            }
+        },
+        "attempts.CreateAttemptResponse": {
+            "type": "object",
+            "properties": {
+                "attempt": {
+                    "$ref": "#/definitions/attempts.AttemptShortDTO"
+                }
+            }
+        },
+        "attempts.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/publications.ErrorBody"
+                }
+            }
+        },
+        "attempts.SaveAnswersRequest": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/attempts.AnswerDTO"
+                    }
+                }
+            }
+        },
         "auth.AuthResponse": {
             "type": "object",
             "properties": {
@@ -531,6 +1221,163 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "publications.ErrorBody": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publications.FieldDetail"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "publications.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/publications.ErrorBody"
+                }
+            }
+        },
+        "publications.FieldDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "publications.PublicOption": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "publications.PublicQuestion": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publications.PublicOption"
+                    }
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "publications.PublicTest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "questionCount": {
+                    "type": "integer"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publications.PublicQuestion"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "publications.PublishRequest": {
+            "type": "object",
+            "properties": {
+                "expectedRevision": {
+                    "type": "integer"
+                }
+            }
+        },
+        "publications.PublishResponse": {
+            "type": "object",
+            "properties": {
+                "publication": {
+                    "$ref": "#/definitions/publications.PublishResponseData"
+                }
+            }
+        },
+        "publications.PublishResponseData": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "publicToken": {
+                    "type": "string"
+                },
+                "publicUrl": {
+                    "type": "string"
+                },
+                "publishedAt": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "publications.ValidateResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publications.FieldDetail"
+                    }
+                },
+                "summary": {
+                    "$ref": "#/definitions/publications.ValidateSummary"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "publications.ValidateSummary": {
+            "type": "object",
+            "properties": {
+                "maxScore": {
+                    "type": "number"
+                },
+                "questionCount": {
+                    "type": "integer"
                 }
             }
         },
@@ -773,6 +1620,43 @@ const docTemplate = `{
                 }
             }
         },
+        "tests.TestListItemDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "revision": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "tests.TestListResponse": {
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "type": "string"
+                },
+                "tests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tests.TestListItemDTO"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "tests.TestResponse": {
             "type": "object",
             "properties": {
@@ -802,7 +1686,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost",
-	BasePath:         "/api",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Test Builder Platform API",
 	Description:      "API для платформы создания тестов",
