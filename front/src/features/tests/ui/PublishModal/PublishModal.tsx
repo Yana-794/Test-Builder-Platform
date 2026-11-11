@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useValidateTest } from "../../model/hooks/useValidateTest";
 import { usePublishTest } from "../../model/hooks/usePublishTest";
-import type { Publication } from "../../../../entities/test/model/types";
 import { ApiError } from "../../../../shared/api/http";
 import styles from "./PublishModal.module.css";
+import type { Publication } from "../../../../entities/publication";
 
 type PublishModalProps = {
   testId: string;

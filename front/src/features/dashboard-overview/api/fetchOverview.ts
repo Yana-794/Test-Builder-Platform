@@ -1,4 +1,4 @@
-import type { DashboardOverview } from "../../../entities/test/model/types";
+import type { DashboardOverview } from "../../../entities/dashboard";
 import { httpClient } from "../../../shared/api/http";
 
 export const fetchOverview = (signal?: AbortSignal) =>

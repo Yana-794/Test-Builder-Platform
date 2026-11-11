@@ -1,4 +1,4 @@
-import type { PublicationResponse } from "../../../entities/test/model/types";
+import type { PublicationResponse } from "../../../entities/publication";
 import { httpClient } from "../../../shared/api/http";
 
 export const publishTest = (testId: string, expectedRevision: number) =>
