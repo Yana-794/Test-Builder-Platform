@@ -4,12 +4,13 @@ import (
 	"net/http"
 	"time"
 
+	"test-builder/internal/analytics"
 	"test-builder/internal/attempts"
 	"test-builder/internal/auth"
 	"test-builder/internal/dashboard"
+	"test-builder/internal/metrics"
 	"test-builder/internal/publications"
 	"test-builder/internal/tests"
-	"test-builder/internal/analytics"
 
 	_ "test-builder/docs"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-redis/redis_rate/v10"
 	"github.com/redis/go-redis/v9"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -53,6 +55,7 @@ func New(
 			AllowCredentials: true,
 			MaxAge:           12 * time.Hour,
 		}),
+		metrics.GinMiddleware(),
 
 		maxBodySize(1<<20),
 	)
@@ -74,6 +77,7 @@ func New(
 			},
 		})
 	})
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	authIPLimit := redis_rate.PerMinute(10)
 	authRoutes := router.Group("/auth")
 	authRoutes.Use(noStore())

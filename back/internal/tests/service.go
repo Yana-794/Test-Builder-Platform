@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/google/uuid"
+	"test-builder/internal/metrics"
 )
 var validFilters = map[string][]string{
 	"all":       {"draft", "published"}, 
@@ -58,8 +59,12 @@ func (s *Service) CreateTest(
 	if len(details) > 0 {
 		return Test{}, &ValidationError{Details: details}
 	}
-
-	return s.repo.CreateTest(ctx, ownerID, title, description, subject)
+	test, err := s.repo.CreateTest(ctx, ownerID, title, description, subject)
+	if err != nil {
+		return Test{}, err
+	}
+	metrics.TestsCreatedTotal.Inc()
+	return test, nil
 }
 
 // GetTestForEditor
