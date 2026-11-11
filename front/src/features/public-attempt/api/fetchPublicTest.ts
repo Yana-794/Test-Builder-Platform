@@ -1,4 +1,4 @@
-import type { PublicTest } from "../../../entities/test/model/types";
+import type { PublicTest } from "../../../entities/publication";
 import { httpClient } from "../../../shared/api/http";
 
 export const fetchPublicTest = (token: string, signal?: AbortSignal) =>

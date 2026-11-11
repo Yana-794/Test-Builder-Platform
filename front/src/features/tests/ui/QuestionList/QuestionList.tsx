@@ -1,5 +1,12 @@
 import type { FC } from "react";
 import { useState } from "react";
+import {
+  ChevronDown,
+  ChevronUp,
+  GripVertical,
+  ListPlus,
+  Type,
+} from "lucide-react";
 import type { QuestionType } from "../../../../entities/test/model/types";
 import styles from "./QuestionList.module.css";
 import type { EditorQuestion } from "../../model/editorTypes";
@@ -11,6 +18,11 @@ type QuestionListProps = {
   onAdd: (type: QuestionType) => void;
   onMove: (key: string, direction: -1 | 1) => void;
   disabled?: boolean;
+};
+
+const TYPE_LABEL: Record<string, string> = {
+  single_choice: "Один ответ",
+  text: "Текст",
 };
 
 export const QuestionList: FC<QuestionListProps> = ({
@@ -48,84 +60,131 @@ export const QuestionList: FC<QuestionListProps> = ({
   };
 
   return (
-    <aside className={styles.list}>
+    <aside className={styles.list} aria-label="Список вопросов">
       <div className={styles.header}>
-        <span className={styles.title}>Вопросы</span>
-        <span className={styles.count}>{questions.length}</span>
+        <div className={styles.titleWrap}>
+          <span className={styles.titleMark} aria-hidden="true" />
+          <span className={styles.title}>Вопросы</span>
+        </div>
+        <span
+          className={styles.count}
+          aria-label={`Всего: ${questions.length}`}
+        >
+          {questions.length}
+        </span>
       </div>
 
-      <ul className={styles.items}>
-        {questions.map((q, idx) => (
-          <li
-            key={q.clientKey}
-            className={[
-              styles.item,
-              q.clientKey === selectedKey ? styles.active : "",
-              overIdx === idx ? styles.dragOver : "",
-            ]
-              .join(" ")
-              .trim()}
-            onClick={() => onSelect(q.clientKey)}
-            draggable={!disabled}
-            onDragStart={(e) => onDragStart(e, idx)}
-            onDragOver={(e) => onDragOver(e, idx)}
-            onDrop={(e) => onDrop(e, idx)}
-            onDragEnd={() => {
-              setDragIdx(null);
-              setOverIdx(null);
-            }}
-          >
-            <span className={styles.number}>{idx + 1}</span>
-            <div className={styles.content}>
-              <span className={styles.prompt}>
-                {q.prompt.trim() || "(без текста)"}
-              </span>
-              <span className={styles.type}>
-                {q.type === "single_choice" ? "Один ответ" : "Текст"}
-              </span>
-            </div>
-            <div className={styles.controls}>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMove(q.clientKey, -1);
-                }}
-                disabled={disabled || idx === 0}
-                title="Выше"
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMove(q.clientKey, 1);
-                }}
-                disabled={disabled || idx === questions.length - 1}
-                title="Ниже"
-              >
-                ↓
-              </button>
-            </div>
+      <ul className={styles.items} role="listbox" aria-label="Вопросы теста">
+        {questions.length === 0 && (
+          <li className={styles.empty} role="presentation">
+            <span className={styles.emptyTitle}>Пока нет вопросов</span>
+            <span className={styles.emptyText}>
+              Добавьте первый вопрос ниже.
+            </span>
           </li>
-        ))}
+        )}
+
+        {questions.map((q, idx) => {
+          const isActive = q.clientKey === selectedKey;
+          const isOver = overIdx === idx;
+          return (
+            <li
+              key={q.clientKey}
+              role="option"
+              aria-selected={isActive}
+              tabIndex={disabled ? -1 : 0}
+              className={[
+                styles.item,
+                isActive ? styles.active : "",
+                isOver ? styles.dragOver : "",
+                disabled ? styles.itemDisabled : "",
+              ]
+                .join(" ")
+                .trim()}
+              onClick={() => onSelect(q.clientKey)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelect(q.clientKey);
+                }
+              }}
+              draggable={!disabled}
+              onDragStart={(e) => onDragStart(e, idx)}
+              onDragOver={(e) => onDragOver(e, idx)}
+              onDrop={(e) => onDrop(e, idx)}
+              onDragEnd={() => {
+                setDragIdx(null);
+                setOverIdx(null);
+              }}
+            >
+              <span className={styles.grip} aria-hidden="true">
+                <GripVertical size={14} strokeWidth={2.2} />
+              </span>
+
+              <span className={styles.number}>{idx + 1}</span>
+
+              <div className={styles.content}>
+                <span className={styles.prompt}>
+                  {q.prompt.trim() || "(без текста)"}
+                </span>
+                <span
+                  className={`${styles.type} ${styles[`type_${q.type}`] ?? ""}`}
+                >
+                  {TYPE_LABEL[q.type] ?? q.type}
+                </span>
+              </div>
+
+              <div className={styles.controls}>
+                <button
+                  type="button"
+                  className={styles.controlBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMove(q.clientKey, -1);
+                  }}
+                  disabled={disabled || idx === 0}
+                  title="Выше"
+                  aria-label="Переместить выше"
+                >
+                  <ChevronUp size={14} strokeWidth={2.4} />
+                </button>
+                <button
+                  type="button"
+                  className={styles.controlBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMove(q.clientKey, 1);
+                  }}
+                  disabled={disabled || idx === questions.length - 1}
+                  title="Ниже"
+                  aria-label="Переместить ниже"
+                >
+                  <ChevronDown size={14} strokeWidth={2.4} />
+                </button>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       <div className={styles.actions}>
         <button
+          type="button"
           className={styles.addButton}
           onClick={() => onAdd("single_choice")}
           disabled={disabled || questions.length >= 100}
         >
-          + Вопрос с вариантами
+          <ListPlus size={15} strokeWidth={2.2} />
+          <span>Вопрос с вариантами</span>
         </button>
         <button
+          type="button"
           className={styles.addButton}
           onClick={() => onAdd("text")}
           disabled={disabled || questions.length >= 100}
         >
-          + Текстовый вопрос
+          <Type size={15} strokeWidth={2.2} />
+          <span>Текстовый вопрос</span>
         </button>
       </div>
     </aside>

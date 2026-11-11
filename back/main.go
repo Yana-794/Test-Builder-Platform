@@ -35,6 +35,8 @@ import (
 	"test-builder/internal/publications"
 	"test-builder/internal/tests"
 	"test-builder/internal/attempts"
+	"test-builder/internal/analytics"
+
 )
 
 func main() {
@@ -88,8 +90,11 @@ func run() error {
 	attemptsRepo := attempts.NewRepository(pool)
 	attemptsSvc := attempts.NewService(attemptsRepo, pool)
 	attemptsHandler := attempts.NewHandler(attemptsSvc, cfg.AppEnv)
+	analyticsRepo := analytics.NewRepository(pool)
+	analyticsSvc := analytics.NewService(analyticsRepo)
+	analyticsHandler := analytics.NewHandler(analyticsSvc)
 	// HTTP-роутер
-	router := httpserver.New(authHandler, dashboardHandler, testsHandler, publicationsHandler, attemptsHandler, rdb, cfg.FrontendOrigin, cfg.AppEnv)
+	router := httpserver.New(authHandler, dashboardHandler, testsHandler, publicationsHandler, attemptsHandler,analyticsHandler, rdb, cfg.FrontendOrigin, cfg.AppEnv)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,

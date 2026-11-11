@@ -1,5 +1,4 @@
 import type { FC } from "react";
-import { Link } from "react-router";
 import { LogOut, Plus, User } from "lucide-react";
 import { Logo } from "../../../shared";
 import styles from "./Header.module.css";
@@ -17,9 +16,7 @@ export const Header: FC<HeaderProps> = ({
 }) => (
   <header className={styles.header}>
     <div className={styles.left}>
-      <Link to="/app" className={styles.logo} aria-label="На главную">
-        <Logo variant="default" />
-      </Link>
+      <Logo variant="default" to="/app" />
     </div>
 
     <div className={styles.right}>
@@ -27,13 +24,16 @@ export const Header: FC<HeaderProps> = ({
         type="button"
         className={styles.primaryButton}
         onClick={onCreateTest}
+        title="Создать тест"
+        aria-label="Создать тест"
       >
-        <Plus size={16} strokeWidth={2.5} />
+        <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
+        <span className={styles.primaryLabel}>Создать тест</span>
       </button>
 
       <div className={styles.user} title={userName}>
-        <span className={styles.avatar} aria-hidden>
-          <User size={20} strokeWidth={2} />
+        <span className={styles.avatar} aria-hidden="true">
+          <User size={18} strokeWidth={2.2} />
         </span>
         <span className={styles.userName}>{userName}</span>
       </div>
@@ -43,8 +43,9 @@ export const Header: FC<HeaderProps> = ({
         className={styles.logoutButton}
         onClick={onLogout}
         aria-label="Выйти"
+        title="Выйти"
       >
-        <LogOut size={16} strokeWidth={2} />
+        <LogOut size={16} strokeWidth={2.2} aria-hidden="true" />
         <span className={styles.logoutLabel}>Выйти</span>
       </button>
     </div>

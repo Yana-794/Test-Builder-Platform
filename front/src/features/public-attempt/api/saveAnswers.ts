@@ -1,4 +1,4 @@
-import type { SaveAnswersPayload } from "../../../entities/test/model/types";
+import type { SaveAnswersPayload } from "../../../entities/attempt";
 import { httpClient } from "../../../shared/api/http";
 
 export const saveAnswers = (attemptId: string, payload: SaveAnswersPayload) =>

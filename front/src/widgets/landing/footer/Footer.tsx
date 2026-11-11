@@ -81,9 +81,6 @@ export function Footer() {
               <a href={`mailto:${CONTACT_EMAIL}`} className={styles.link}>
                 {CONTACT_EMAIL}
               </a>
-              <a href="#" className={styles.link}>
-                Обратная связь
-              </a>
             </div>
           </div>
         </div>
@@ -92,17 +89,7 @@ export function Footer() {
           <span className={styles.copyright}>
             © {new Date().getFullYear()} Test Builder Platform
           </span>
-          <div className={styles.legal}>
-            <a href="#" className={styles.legalLink}>
-              Политика конфиденциальности
-            </a>
-            <span className={styles.separator} aria-hidden>
-              ·
-            </span>
-            <a href="#" className={styles.legalLink}>
-              Условия использования
-            </a>
-          </div>
+         
         </div>
       </div>
     </footer>

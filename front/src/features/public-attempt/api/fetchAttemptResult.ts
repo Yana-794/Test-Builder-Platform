@@ -1,4 +1,5 @@
-import type { AttemptResultResponse } from "../../../entities/test/model/types";
+
+import type { AttemptResultResponse } from "../../../entities/attempt";
 import { httpClient } from "../../../shared/api/http";
 
 export const fetchAttemptResult = (attemptId: string, signal?: AbortSignal) =>

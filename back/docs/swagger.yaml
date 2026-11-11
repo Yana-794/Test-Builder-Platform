@@ -1,5 +1,115 @@
-basePath: /api
+basePath: /
 definitions:
+  analytics.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/publications.ErrorBody'
+    type: object
+  analytics.RecentAttemptDTO:
+    properties:
+      attemptId:
+        type: string
+      completedAt:
+        type: string
+      durationSeconds:
+        type: integer
+      maxScore:
+        type: number
+      percent:
+        type: number
+      score:
+        type: number
+      startedAt:
+        type: string
+      status:
+        type: string
+      studentName:
+        type: string
+      testId:
+        type: string
+      testTitle:
+        type: string
+    type: object
+  analytics.RecentResponse:
+    properties:
+      attempts:
+        items:
+          $ref: '#/definitions/analytics.RecentAttemptDTO'
+        type: array
+    type: object
+  attempts.AnswerDTO:
+    properties:
+      answerText:
+        type: string
+      questionId:
+        type: string
+      selectedOptionId:
+        type: string
+    type: object
+  attempts.AttemptResultDTO:
+    properties:
+      completedAt:
+        type: string
+      durationSeconds:
+        type: integer
+      id:
+        type: string
+      maxScore:
+        type: number
+      percentage:
+        type: number
+      score:
+        type: number
+      status:
+        type: string
+    type: object
+  attempts.AttemptResultResponse:
+    properties:
+      attempt:
+        $ref: '#/definitions/attempts.AttemptResultDTO'
+    type: object
+  attempts.AttemptShortDTO:
+    properties:
+      id:
+        type: string
+      startedAt:
+        type: string
+      status:
+        type: string
+    type: object
+  attempts.AttemptStateResponse:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/attempts.AnswerDTO'
+        type: array
+      attempt:
+        $ref: '#/definitions/attempts.AttemptShortDTO'
+      test:
+        $ref: '#/definitions/publications.PublicTest'
+    type: object
+  attempts.CreateAttemptRequest:
+    properties:
+      studentName:
+        type: string
+    type: object
+  attempts.CreateAttemptResponse:
+    properties:
+      attempt:
+        $ref: '#/definitions/attempts.AttemptShortDTO'
+    type: object
+  attempts.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/publications.ErrorBody'
+    type: object
+  attempts.SaveAnswersRequest:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/attempts.AnswerDTO'
+        type: array
+    type: object
   auth.AuthResponse:
     properties:
       csrf_token:
@@ -69,6 +179,107 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  publications.ErrorBody:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/publications.FieldDetail'
+        type: array
+      message:
+        type: string
+    type: object
+  publications.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/publications.ErrorBody'
+    type: object
+  publications.FieldDetail:
+    properties:
+      code:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  publications.PublicOption:
+    properties:
+      id:
+        type: string
+      text:
+        type: string
+    type: object
+  publications.PublicQuestion:
+    properties:
+      id:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/publications.PublicOption'
+        type: array
+      position:
+        type: integer
+      prompt:
+        type: string
+      type:
+        type: string
+    type: object
+  publications.PublicTest:
+    properties:
+      description:
+        type: string
+      questionCount:
+        type: integer
+      questions:
+        items:
+          $ref: '#/definitions/publications.PublicQuestion'
+        type: array
+      title:
+        type: string
+    type: object
+  publications.PublishRequest:
+    properties:
+      expectedRevision:
+        type: integer
+    type: object
+  publications.PublishResponse:
+    properties:
+      publication:
+        $ref: '#/definitions/publications.PublishResponseData'
+    type: object
+  publications.PublishResponseData:
+    properties:
+      id:
+        type: string
+      publicToken:
+        type: string
+      publicUrl:
+        type: string
+      publishedAt:
+        type: string
+      version:
+        type: integer
+    type: object
+  publications.ValidateResponse:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/publications.FieldDetail'
+        type: array
+      summary:
+        $ref: '#/definitions/publications.ValidateSummary'
+      valid:
+        type: boolean
+    type: object
+  publications.ValidateSummary:
+    properties:
+      maxScore:
+        type: number
+      questionCount:
+        type: integer
     type: object
   tests.AnswerOptionDTO:
     properties:
@@ -225,6 +436,30 @@ definitions:
       test:
         $ref: '#/definitions/tests.EditorTestDTO'
     type: object
+  tests.TestListItemDTO:
+    properties:
+      id:
+        type: string
+      revision:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  tests.TestListResponse:
+    properties:
+      filter:
+        type: string
+      tests:
+        items:
+          $ref: '#/definitions/tests.TestListItemDTO'
+        type: array
+      total:
+        type: integer
+    type: object
   tests.TestResponse:
     properties:
       test:
@@ -237,6 +472,33 @@ info:
   title: Test Builder Platform API
   version: "1.0"
 paths:
+  /analytics/recent:
+    get:
+      parameters:
+      - description: 1-100, default 20
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/analytics.RecentResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/analytics.ErrorResponse'
+      security:
+      - CookieAuth: []
+      summary: Последние попытки учеников
+      tags:
+      - analytics
   /auth/login:
     post:
       consumes:
@@ -378,7 +640,200 @@ paths:
       summary: Сводка Dashboard
       tags:
       - dashboard
+  /public/attempts/{attemptId}:
+    get:
+      parameters:
+      - description: UUID попытки
+        in: path
+        name: attemptId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/attempts.AttemptStateResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+      summary: Состояние попытки
+      tags:
+      - public
+  /public/attempts/{attemptId}/answers:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID попытки
+        in: path
+        name: attemptId
+        required: true
+        type: string
+      - description: Полный набор ответов
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/attempts.SaveAnswersRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+      summary: Сохранить ответы
+      tags:
+      - public
+  /public/attempts/{attemptId}/result:
+    get:
+      parameters:
+      - description: UUID попытки
+        in: path
+        name: attemptId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/attempts.AttemptResultResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+      summary: Результат попытки
+      tags:
+      - public
+  /public/attempts/{attemptId}/submit:
+    post:
+      parameters:
+      - description: UUID попытки
+        in: path
+        name: attemptId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/attempts.AttemptResultResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+      summary: Завершить попытку
+      tags:
+      - public
+  /public/tests/{token}:
+    get:
+      parameters:
+      - description: Публичный токен
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/publications.PublicTest'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+      summary: Публичный тест по токену
+      tags:
+      - public
+  /public/tests/{token}/attempts:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Публичный токен
+        in: path
+        name: token
+        required: true
+        type: string
+      - description: Имя ученика
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/attempts.CreateAttemptRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/attempts.CreateAttemptResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/attempts.ErrorResponse'
+      summary: Создать попытку прохождения
+      tags:
+      - public
   /tests:
+    get:
+      parameters:
+      - default: all
+        description: all | draft | published
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tests.TestListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/tests.ErrorResponse'
+      security:
+      - CookieAuth: []
+      summary: Список тестов пользователя
+      tags:
+      - tests
     post:
       consumes:
       - application/json
@@ -499,6 +954,116 @@ paths:
       summary: Сохранение черновика
       tags:
       - tests
+  /tests/{testId}/publication:
+    get:
+      parameters:
+      - description: UUID теста
+        in: path
+        name: testId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publications.PublishResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+      security:
+      - CookieAuth: []
+      summary: Актуальная публикация теста
+      tags:
+      - publications
+  /tests/{testId}/publish:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID теста
+        in: path
+        name: testId
+        required: true
+        type: string
+      - description: expectedRevision
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/publications.PublishRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/publications.PublishResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+      security:
+      - CookieAuth: []
+      - CsrfToken: []
+      summary: Публикация теста
+      tags:
+      - publications
+  /tests/{testId}/validate:
+    post:
+      parameters:
+      - description: UUID теста
+        in: path
+        name: testId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publications.ValidateResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/publications.ErrorResponse'
+      security:
+      - CookieAuth: []
+      - CsrfToken: []
+      summary: Проверка готовности теста к публикации
+      tags:
+      - publications
 securityDefinitions:
   CookieAuth:
     description: 'Вставьте сюда строку вида: tbp_session=<токен из cookie>'

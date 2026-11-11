@@ -3,11 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useAttemptState } from "../../features/public-attempt/model/useAttemptState";
 import { useSaveAnswers } from "../../features/public-attempt/model/useSaveAnswers";
-import type { AnswerDTO, PublicQuestion } from "../../entities/test/model/types";
 import { ApiError } from "../../shared/api/http";
 import { ErrorState } from "../../shared/ui/error-state/ErrorState";
 import styles from "./PublicAttemptPage.module.css";
 import { useSubmitAttempt } from "../../features/public-attempt/model/useSubmitAttempt";
+import type { AnswerDTO } from "../../entities/attempt";
+import type { PublicQuestion } from "../../entities/publication";
 
 const SAVE_DEBOUNCE_MS = 800;
 

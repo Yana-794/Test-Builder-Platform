@@ -9,6 +9,7 @@ import (
 	"test-builder/internal/dashboard"
 	"test-builder/internal/publications"
 	"test-builder/internal/tests"
+	"test-builder/internal/analytics"
 
 	_ "test-builder/docs"
 
@@ -27,6 +28,7 @@ func New(
 	testsHandler *tests.Handler,
 	publicationsHandler *publications.Handler,
 	attemptsHandler *attempts.Handler,
+	analyticsHandler *analytics.Handler,
 	rdb *redis.Client,
 	frontendOrigin string,
 	appEnv string,
@@ -123,7 +125,12 @@ func New(
 		publicAttempts.POST("/:attemptId/submit", attemptsHandler.Submit)
 		publicAttempts.GET("/:attemptId/result", attemptsHandler.GetResult)
 	}
-
+	
+	analyticsRoutes := router.Group("/analytics")
+	analyticsRoutes.Use(authHandler.RequireAuth())
+	{
+		analyticsRoutes.GET("/recent", analyticsHandler.Recent)
+	}
 	if !isProduction {
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}

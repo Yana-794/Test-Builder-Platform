@@ -1,0 +1,1 @@
+export type { AnalyticsRecentAttempt } from "./model/types";

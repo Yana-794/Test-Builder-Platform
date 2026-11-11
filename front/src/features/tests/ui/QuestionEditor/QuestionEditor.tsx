@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import { Hash, ListChecks, Type } from "lucide-react";
 import type { QuestionType } from "../../../../entities/test/model/types";
 import { OptionList } from "../OptionList/OptionList";
 import styles from "./QuestionEditor.module.css";
@@ -20,6 +21,11 @@ type QuestionEditorProps = {
   disabled?: boolean;
 };
 
+const TYPE_LABEL: Record<QuestionType, string> = {
+  single_choice: "С вариантами",
+  text: "Текстовый",
+};
+
 export const QuestionEditor: FC<QuestionEditorProps> = ({
   question,
   index,
@@ -31,14 +37,32 @@ export const QuestionEditor: FC<QuestionEditorProps> = ({
   onSetCorrectOption,
   disabled,
 }) => {
+  const promptLen = question.prompt.length;
+  const promptNear = promptLen >= 1800;
+  const textLen = (question.correctTextAnswer ?? "").length;
+  const textNear = textLen >= 900;
+
   return (
     <div className={styles.editor}>
       <div className={styles.header}>
-        <span className={styles.number}>Вопрос {index + 1}</span>
+        <div className={styles.headerLeft}>
+          <span className={styles.headerMark} aria-hidden="true" />
+          <span className={styles.number}>Вопрос {index + 1}</span>
+        </div>
+        <span
+          className={`${styles.typeChip} ${
+            styles[`typeChip_${question.type}`] ?? ""
+          }`}
+        >
+          {TYPE_LABEL[question.type] ?? question.type}
+        </span>
       </div>
 
-      <label className={styles.label}>
-        Формулировка
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>
+          <Hash size={13} strokeWidth={2.4} aria-hidden="true" />
+          Формулировка
+        </span>
         <textarea
           className={styles.textarea}
           value={question.prompt}
@@ -50,22 +74,31 @@ export const QuestionEditor: FC<QuestionEditorProps> = ({
           rows={3}
           disabled={disabled}
         />
-        <span className={styles.counter}>{question.prompt.length} / 2000</span>
+        <span
+          className={`${styles.counter} ${promptNear ? styles.counterNear : ""}`}
+        >
+          {promptLen} / 2000
+        </span>
       </label>
 
-      <label className={styles.label}>
-        Тип вопроса
-        <select
-          className={styles.select}
-          value={question.type}
-          onChange={(e) =>
-            onChangeType(question.clientKey, e.target.value as QuestionType)
-          }
-          disabled={disabled}
-        >
-          <option value="single_choice">Один правильный вариант</option>
-          <option value="text">Текстовый ответ</option>
-        </select>
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>
+          <ListChecks size={13} strokeWidth={2.4} aria-hidden="true" />
+          Тип вопроса
+        </span>
+        <div className={styles.selectWrap}>
+          <select
+            className={styles.select}
+            value={question.type}
+            onChange={(e) =>
+              onChangeType(question.clientKey, e.target.value as QuestionType)
+            }
+            disabled={disabled}
+          >
+            <option value="single_choice">Один правильный вариант</option>
+            <option value="text">Текстовый ответ</option>
+          </select>
+        </div>
       </label>
 
       {question.type === "single_choice" ? (
@@ -80,8 +113,11 @@ export const QuestionEditor: FC<QuestionEditorProps> = ({
           disabled={disabled}
         />
       ) : (
-        <label className={styles.label}>
-          Правильный текстовый ответ
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>
+            <Type size={13} strokeWidth={2.4} aria-hidden="true" />
+            Правильный текстовый ответ
+          </span>
           <textarea
             className={styles.textarea}
             value={question.correctTextAnswer ?? ""}
@@ -95,8 +131,10 @@ export const QuestionEditor: FC<QuestionEditorProps> = ({
             rows={2}
             disabled={disabled}
           />
-          <span className={styles.counter}>
-            {(question.correctTextAnswer ?? "").length} / 1000
+          <span
+            className={`${styles.counter} ${textNear ? styles.counterNear : ""}`}
+          >
+            {textLen} / 1000
           </span>
         </label>
       )}
