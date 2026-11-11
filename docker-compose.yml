@@ -61,10 +61,22 @@ services:
       - back
     networks:
       - frontend_network
-
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: test-builder-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - back
+    networks:
+      - backend_network
 volumes:
   postgres_data:
   redis_data:
+  prometheus_data:
 
 networks:
   backend_network:
