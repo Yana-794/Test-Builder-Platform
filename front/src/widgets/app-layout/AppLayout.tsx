@@ -9,7 +9,6 @@ export const AppLayout: FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const isEditor = useMatch("/app/tests/:testId/edit") !== null;
-  const userName = user?.display_name ?? "";
 
   const handleLogout = () => {
     void logout();
@@ -18,7 +17,7 @@ export const AppLayout: FC = () => {
   return (
     <div className={styles.root}>
       <Header
-        userName={userName}
+        user={user ?? null}
         onCreateTest={() => navigate("/app/tests/new")}
         onLogout={handleLogout}
       />

@@ -384,7 +384,7 @@
 ### 12.1. Backend и хранение данных
 
 - Backend реализован на Go.
-- PostgreSQL 16 используется как основная база данных.
+- PostgreSQL 18 используется как основная база данных.
 - Миграции базы данных управляются с помощью Goose.
 - Redis используется для rate limiting.
 - Для хранения данных предусмотрены таблицы: `users`, `auth_sessions`, `tests`, `questions`, `answer_options`, `test_publications`, `attempts`, `attempt_answers`.

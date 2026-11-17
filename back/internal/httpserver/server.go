@@ -86,6 +86,8 @@ func New(
 		authRoutes.POST("/login", rateLimitByIP(rdb, authIPLimit), authHandler.Login)
 		authRoutes.POST("/logout", authHandler.RequireAuth(), authHandler.Logout)
 		authRoutes.GET("/me", authHandler.RequireAuth(), authHandler.Me)
+		authRoutes.PUT("/profile", authHandler.RequireAuth(), authHandler.UpdateProfile)
+		authRoutes.POST("/change-password", authHandler.RequireAuth(), authHandler.ChangePassword)
 	}
 
 	dashboardRoutes := router.Group("/app")

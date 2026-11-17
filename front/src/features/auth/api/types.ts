@@ -19,3 +19,5 @@ export type LoginPayload = {
   email: string;
   password: string;
 };
+export type UpdateProfilePayload = { display_name: string };
+export type ChangePasswordPayload = { current_password: string; new_password: string };

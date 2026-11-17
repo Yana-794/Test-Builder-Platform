@@ -28,6 +28,14 @@ type AuthResponse struct {
 	CSRFToken string       `json:"csrf_token"`
 }
 
+type UpdateProfileRequest struct {
+	DisplayName string `json:"display_name"`
+}
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
 func toUserResponse(user User) UserResponse {
 	return UserResponse{
 		ID:            user.ID.String(),

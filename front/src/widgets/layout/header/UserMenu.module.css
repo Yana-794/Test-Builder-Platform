@@ -1,0 +1,114 @@
+.root {
+  position: relative;
+  padding-bottom: 6px;
+  margin-bottom: -6px;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 8px 4px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.trigger:hover,
+.trigger[aria-expanded="true"] {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(87, 80, 232, 0.12);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 240px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-1);
+  z-index: 60;
+  animation: menuIn 0.12s ease;
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.menuHeader {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-1);
+}
+
+.menuName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menuEmail {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--color-bg);
+}
+
+@media (max-width: 720px) {
+  .name { display: none; }
+}

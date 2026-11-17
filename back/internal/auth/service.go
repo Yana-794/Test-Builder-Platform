@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	
+	"github.com/google/uuid"
 )
 
 const (
@@ -192,3 +192,42 @@ func (s *Service) Logout(
 	return s.repo.RevokeSession(ctx, tokenHash[:])
 }
 
+func (s *Service) UpdateProfile(
+	ctx context.Context, userID uuid.UUID, displayName string,
+) (User, error) {
+	name := strings.TrimSpace(displayName)
+	if n := utf8.RuneCountInString(name); n < 1 || n > 100 {
+		return User{}, ErrInvalidInput
+	}
+	return s.repo.UpdateDisplayName(ctx, userID, name)
+}
+
+// меняет пароль и отзывает все другие сессии пользователя.
+// currentTokenHash - хеш текущей сессии (её не отзываем, чтобы пользователь не вылетел из своего же браузера)
+func (s *Service) ChangePassword(
+	ctx context.Context,
+	userID uuid.UUID,
+	currentPassword, newPassword string,
+	currentTokenHash []byte,
+) error {
+	if utf8.RuneCountInString(newPassword) < 12 || len(newPassword) > maxPasswordBytes {
+		return ErrInvalidInput
+	}
+
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if !verifyPassword(currentPassword, user.PasswordHash) {
+		return ErrInvalidCredentials
+	}
+
+	hash, err := hashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	if err := s.repo.UpdatePasswordHash(ctx, userID, hash); err != nil {
+		return err
+	}
+	return s.repo.RevokeOtherSessions(ctx, userID, currentTokenHash)
+}

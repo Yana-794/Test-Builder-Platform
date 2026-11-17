@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/sha256"
 	"crypto/subtle"
 	"errors"
 	"log/slog"
@@ -279,4 +280,97 @@ func (h *Handler) Logout(c *gin.Context) {
 	})
 
 	c.Status(http.StatusNoContent)
+}
+
+
+// UpdateProfile godoc
+// @Summary      Обновить профиль
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @Param        request body UpdateProfileRequest true "Новое имя"
+// @Success      200  {object}  AuthResponse
+// @Failure      400  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]interface{}
+// @Router       /auth/profile [put]
+// @Security     CookieAuth
+// @Security     CsrfToken
+func (h *Handler) UpdateProfile(c *gin.Context) {
+	c.Header("Cache-Control", "no-store")
+
+	session, ok := SessionFromCtx(c)
+	if !ok {
+		writeError(c, http.StatusUnauthorized, "UNAUTHENTICATED", "Please sign in")
+		return
+	}
+
+	var req UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bindError(c, err)
+		return
+	}
+
+	user, err := h.service.UpdateProfile(c.Request.Context(), session.User.ID, req.DisplayName)
+	if errors.Is(err, ErrInvalidInput) {
+		writeError(c, http.StatusBadRequest, "VALIDATION_ERROR",
+			"Display name must be 1–100 characters")
+		return
+	}
+	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "update profile failed", "error", err)
+		writeError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "Something went wrong")
+		return
+	}
+
+	c.JSON(http.StatusOK, AuthResponse{
+		User:      toUserResponse(user),
+		CSRFToken: session.CSRFToken,
+	})
+}
+
+// ChangePassword godoc
+// @Summary      Сменить пароль
+// @Tags         profile
+// @Accept       json
+// @Success      204
+// @Failure      400  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]interface{}
+// @Router       /auth/change-password [post]
+// @Security     CookieAuth
+// @Security     CsrfToken
+func (h *Handler) ChangePassword(c *gin.Context) {
+	c.Header("Cache-Control", "no-store")
+
+	session, ok := SessionFromCtx(c)
+	if !ok {
+		writeError(c, http.StatusUnauthorized, "UNAUTHENTICATED", "Please sign in")
+		return
+	}
+
+	var req ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bindError(c, err)
+		return
+	}
+
+	// Хеш текущей сессии, чтобы не отзывать её саму
+	token, _ := c.Cookie(h.cookieName)
+	tokenHash := sha256.Sum256([]byte(token))
+
+	err := h.service.ChangePassword(
+		c.Request.Context(), session.User.ID,
+		req.CurrentPassword, req.NewPassword, tokenHash[:],
+	)
+	switch {
+	case errors.Is(err, ErrInvalidCredentials):
+		writeError(c, http.StatusBadRequest, "VALIDATION_ERROR", "Current password is incorrect")
+	case errors.Is(err, ErrInvalidInput):
+		writeError(c, http.StatusBadRequest, "VALIDATION_ERROR",
+			"New password must be 12–128 characters")
+	case err != nil:
+		slog.ErrorContext(c.Request.Context(), "change password failed", "error", err)
+		writeError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "Something went wrong")
+	default:
+		c.Status(http.StatusNoContent)
+	}
 }
