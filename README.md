@@ -248,7 +248,7 @@ Prometheus собирает метрики с интервалом 15 секун
 <p align="center"><strong>Аналитика</strong></p>
 <p align="center"><img src="docs/assets/screenshots/06-analytics.png" alt="Аналитика" width="90%" /></p>
 
-<p align="center"><strong>Swagger / Prometheus</strong></p>
+<p align="center"><strong>Prometheus</strong></p>
 <p align="center"><img src="docs/assets/screenshots/07-swagger-prometheus.png" alt="Техническая документация или мониторинг" width="90%" /></p>
 ---
 
