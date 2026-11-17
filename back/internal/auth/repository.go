@@ -188,3 +188,51 @@ func (r *Repository) RevokeSession(
 
 	return nil
 }
+
+func (r *Repository) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
+	const q = `
+		SELECT id, email, display_name, password_hash,
+		       email_verified_at, created_at, updated_at
+		FROM users WHERE id = $1
+	`
+	user, err := scanUser(r.pool.QueryRow(ctx, q, id))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return User{}, ErrUserNotFound
+	}
+	return user, err
+}
+
+func (r *Repository) UpdateDisplayName(
+	ctx context.Context, userID uuid.UUID, displayName string,
+) (User, error) {
+	const q = `
+		UPDATE users SET display_name = $1, updated_at = now()
+		WHERE id = $2
+		RETURNING id, email, display_name, password_hash,
+		          email_verified_at, created_at, updated_at
+	`
+	user, err := scanUser(r.pool.QueryRow(ctx, q, displayName, userID))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return User{}, ErrUserNotFound
+	}
+	return user, err
+}
+
+func (r *Repository) UpdatePasswordHash(
+	ctx context.Context, userID uuid.UUID, hash string,
+) error {
+	_, err := r.pool.Exec(ctx,
+		`UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2`,
+		hash, userID)
+	return err
+}
+
+func (r *Repository) RevokeOtherSessions(
+	ctx context.Context, userID uuid.UUID, currentTokenHash []byte,
+) error {
+	_, err := r.pool.Exec(ctx, `
+		UPDATE auth_sessions SET revoked_at = now()
+		WHERE user_id = $1 AND revoked_at IS NULL AND token_hash <> $2
+	`, userID, currentTokenHash)
+	return err
+}

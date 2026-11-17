@@ -15,6 +15,7 @@ import { PublicTestStartPage } from "../../pages/public-test-start/PublicTestSta
 import { PublicAttemptPage } from "../../pages/public-attempt/PublicAttemptPage";
 import { PublicResultPage } from "../../pages/public-result/PublicResultPage";
 import { AnalyticsPage } from "../../pages/analytics-page/AnalyticsPage";
+import { ProfilePage } from "../../pages/profile-page/ProfilePage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
           { path: "/app/tests/:testId/edit", element: <TestEditorPage /> },
           { path: "/app/tests/:testId", element: <TestDetailPage /> },
           { path: '/app/results', element: <AnalyticsPage /> },
+          { path: "/app/profile", element: <ProfilePage/> },
         ],
       },
     ],

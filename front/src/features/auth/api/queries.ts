@@ -5,8 +5,10 @@ import { ApiError } from "../../../shared/api/http";
 import { authKeys } from "./queryKeys";
 import type {
   AuthResponse,
+  ChangePasswordPayload,
   LoginPayload,
   RegisterPayload,
+  UpdateProfilePayload,
   User,
 } from "./types";
 import { useNavigate } from "react-router";
@@ -77,5 +79,25 @@ export function useLogout() {
       });
       navigate("/login", { replace: true });
     },
+  });
+}
+
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: UpdateProfilePayload) =>
+      httpClient.put<AuthResponse>("/auth/profile", { body: payload }),
+    onSuccess: (data) => {
+      setCsrfToken(data.csrf_token);
+      queryClient.setQueryData(authKeys.me(), data);
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (payload: ChangePasswordPayload) =>
+      httpClient.post<void>("/auth/change-password", { body: payload }),
   });
 }

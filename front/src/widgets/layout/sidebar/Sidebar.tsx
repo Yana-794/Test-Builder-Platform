@@ -2,6 +2,7 @@ import type { FC } from "react";
 import { NavLink } from "react-router";
 import {
   BarChart3, FileText, LayoutDashboard,
+  UserCircle,
 } from "lucide-react";
 import clsx from "clsx";
 import styles from "./Sidebar.module.css";
@@ -17,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/app", label: "Главная", end: true, icon: LayoutDashboard },
   { to: "/app/tests", label: "Мои тесты", icon: FileText },
   { to: "/app/results", label: "Результаты", icon: BarChart3 },
+  { to: "/app/profile", label: "Профиль", icon: UserCircle},
 ];
 
 export const Sidebar: FC = () => (
